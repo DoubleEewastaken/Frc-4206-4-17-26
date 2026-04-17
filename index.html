@@ -3,225 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team 4206 | Live Event Dashboard</title>
+    <title>4206 | Live Pit Dashboard</title>
     <style>
         :root {
-            --red-alliance: #ff4d4d;
-            --blue-alliance: #4d94ff;
-            --bg-dark: #0f0f0f;
-            --card-bg: #1e1e1e;
-            --text: #ffffff;
-            --highlight: #ffcc00;
+            --red: #ff4d4d;
+            --blue: #4d94ff;
+            --gold: #ffcc00;
+            --bg: #0a0a0a;
+            --card: #161616;
             --accent: #007bff;
+            --text: #ffffff;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            overflow-x: hidden;
         }
 
         nav {
-            width: 100%;
-            background: #000;
-            padding: 1rem;
             display: flex;
             justify-content: center;
+            background: #000;
+            padding: 15px;
             gap: 15px;
+            border-bottom: 2px solid var(--accent);
             position: sticky;
             top: 0;
-            z-index: 100;
-            border-bottom: 2px solid var(--accent);
+            z-index: 1000;
         }
 
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #333;
-            color: white;
+        nav button {
+            background: #222;
+            color: #aaa;
             border: none;
-            border-radius: 4px;
+            padding: 10px 25px;
+            border-radius: 5px;
             font-weight: bold;
-            transition: 0.2s;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        button.active { background: var(--accent); }
+        nav button.active { background: var(--accent); color: white; }
 
-        .container {
-            width: 95%;
-            max-width: 1200px;
-            margin: 20px 0;
-        }
-
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* Grid for Match Cards */
+        /* MATCH CARDS */
         .match-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 20px;
         }
 
-        /* Match Card Styles */
         .match-card {
-            background: var(--card-bg);
-            border-radius: 10px;
-            padding: 15px;
+            background: var(--card);
             border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
             position: relative;
         }
 
-        .match-card.featured { border: 2px solid var(--highlight); box-shadow: 0 0 10px rgba(255,204,0,0.2); }
-
-        .alliance-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 5px;
+        .match-card.featured {
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
         }
 
-        .red { background: rgba(255, 77, 77, 0.15); border-left: 5px solid var(--red-alliance); }
-        .blue { background: rgba(77, 148, 255, 0.15); border-left: 5px solid var(--blue-alliance); }
-        .winner-row { outline: 2px solid white; background: rgba(255,255,255,0.1); }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
 
-        .target-team { color: var(--highlight); font-weight: bold; text-shadow: 0 0 5px var(--highlight); }
-        .score { font-size: 1.4rem; font-weight: bold; }
+        .alliance {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
 
-        /* Standings Table */
-        table { width: 100%; border-collapse: collapse; background: var(--card-bg); margin-top: 10px; }
-        th { background: var(--accent); padding: 12px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #333; }
-        .my-team-row { background: rgba(255,204,0,0.1); border-left: 4px solid var(--highlight); }
+        .alliance.red { background: rgba(255, 77, 77, 0.1); border-left: 5px solid var(--red); }
+        .alliance.blue { background: rgba(77, 148, 255, 0.1); border-left: 5px solid var(--blue); }
+        .winner { outline: 2px solid white; background: rgba(255,255,255,0.05); }
 
-        h2 { border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .score { font-weight: 900; font-size: 1.4rem; }
+        .target-team { color: var(--gold); font-weight: bold; text-shadow: 0 0 8px var(--gold); }
+
+        /* SCROLLING STANDINGS */
+        .standings-window {
+            height: 65vh;
+            overflow: hidden;
+            position: relative;
+            background: var(--card);
+            border: 1px solid #333;
+            border-radius: 0 0 10px 10px;
+        }
+
+        #scrolling-content {
+            position: absolute;
+            width: 100%;
+            animation: scroll-loop 45s linear infinite;
+        }
+
+        #scrolling-content:hover { animation-play-state: paused; }
+
+        @keyframes scroll-loop {
+            0% { top: 0; }
+            85% { top: -110%; } /* Adjust based on team count */
+            100% { top: 0; }
+        }
+
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: var(--accent); padding: 15px; text-align: left; }
+        td { padding: 12px 15px; border-bottom: 1px solid #333; overflow: hidden; }
+        tr.highlight-row { background: rgba(255, 204, 0, 0.1); border-left: 4px solid var(--gold); }
+
+        h2 { border-left: 5px solid var(--accent); padding-left: 15px; margin-bottom: 25px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <button onclick="showSection('upcoming')" id="btn-upcoming" class="active">NEXT 6 MATCHES</button>
-    <button onclick="showSection('results')" id="btn-results">RESULTS</button>
-    <button onclick="showSection('standings')" id="btn-standings">STANDINGS</button>
+    <button onclick="switchTab('upcoming')" id="btn-upcoming" class="active">NEXT 6 MATCHES</button>
+    <button onclick="switchTab('results')" id="btn-results">MATCH HISTORY</button>
+    <button onclick="switchTab('standings')" id="btn-standings">LIVE STANDINGS</button>
 </nav>
 
 <div class="container">
     <div id="upcoming" class="view-section active">
-        <h2>Upcoming Matches</h2>
-        <div id="upcoming-grid" class="match-grid">Loading matches...</div>
+        <h2>Schedule for 4206</h2>
+        <div id="upcoming-list" class="match-grid"></div>
     </div>
 
     <div id="results" class="view-section">
-        <h2>Match History</h2>
-        <div id="results-grid" class="match-grid">Loading results...</div>
+        <h2>Event History</h2>
+        <div id="results-list" class="match-grid"></div>
     </div>
 
     <div id="standings" class="view-section">
-        <h2>Current Standings</h2>
+        <h2>Rankings (Auto-Scrolling)</h2>
         <table>
             <thead>
-                <tr><th>Rank</th><th>Team</th><th>W-L-T</th><th>Avg RP</th><th>Total RP</th></tr>
+                <tr>
+                    <th style="width: 15%">Rank</th>
+                    <th style="width: 25%">Team</th>
+                    <th style="width: 25%">W-L-T</th>
+                    <th style="width: 15%">Avg RP</th>
+                    <th style="width: 20%">Total RP</th>
+                </tr>
             </thead>
-            <tbody id="standings-body"></tbody>
         </table>
+        <div class="standings-window">
+            <div id="scrolling-content">
+                <table id="standings-body"></table>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    const TBA_KEY = "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7";
-    const EVENT_KEY = "2026txcmp2";
-    const TARGET_TEAM = "4206";
+    const CONFIG = {
+        KEY: "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7",
+        EVENT: "2026txcmp2",
+        TEAM: "4206"
+    };
 
     async function fetchData() {
         try {
-            // Fetch Matches
-            const mRes = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/matches/simple`, {
-                headers: { 'X-TBA-Auth-Key': TBA_KEY }
-            });
+            const [mRes, rRes] = await Promise.all([
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/matches/simple`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} }),
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/rankings`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} })
+            ]);
+
             const matches = await mRes.json();
-            
-            // Fetch Standings
-            const sRes = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/rankings`, {
-                headers: { 'X-TBA-Auth-Key': TBA_KEY }
-            });
-            const rankings = await sRes.json();
+            const rankings = await rRes.json();
 
-            processMatches(matches);
-            processRankings(rankings.rankings);
-        } catch (e) {
-            console.error("Fetch failed", e);
-        }
+            renderMatches(matches);
+            renderRankings(rankings.rankings);
+        } catch (e) { console.error("API Error:", e); }
     }
 
-    function processMatches(matches) {
-        const sorted = matches
-            .filter(m => m.comp_level === 'qm')
-            .sort((a, b) => a.match_number - b.match_number);
+    function renderMatches(matches) {
+        const quals = matches.filter(m => m.comp_level === 'qm').sort((a,b) => a.match_number - b.match_number);
+        const finished = quals.filter(m => m.alliances.red.score !== -1);
+        const unplayed = quals.filter(m => m.alliances.red.score === -1);
 
-        const finished = sorted.filter(m => m.alliances.red.score !== -1);
-        const upcoming = sorted.filter(m => m.alliances.red.score === -1);
-
-        renderMatchGrid('upcoming-grid', upcoming.slice(0, 6), false);
-        renderMatchGrid('results-grid', [...finished].reverse(), true);
+        document.getElementById('upcoming-list').innerHTML = unplayed.slice(0, 6).map(m => createCard(m, false)).join('');
+        document.getElementById('results-list').innerHTML = [...finished].reverse().map(m => createCard(m, true)).join('');
     }
 
-    function renderMatchGrid(id, matches, isResult) {
-        const container = document.getElementById(id);
-        container.innerHTML = matches.map(m => {
-            const redTeams = m.alliances.red.team_keys.map(k => k.replace('frc', ''));
-            const blueTeams = m.alliances.blue.team_keys.map(k => k.replace('frc', ''));
-            const hasTarget = [...redTeams, ...blueTeams].includes(TARGET_TEAM);
-            
-            const rScore = m.alliances.red.score;
-            const bScore = m.alliances.blue.score;
+    function createCard(m, isResult) {
+        const rK = m.alliances.red.team_keys.map(k => k.replace('frc',''));
+        const bK = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
+        const isFeatured = [...rK, ...bK].includes(CONFIG.TEAM);
+        const rS = m.alliances.red.score;
+        const bS = m.alliances.blue.score;
 
-            return `
-                <div class="match-card ${hasTarget ? 'featured' : ''}">
-                    <div style="display:flex; justify-content:space-between; color:#888; font-size:0.8rem">
-                        <b>QUAL ${m.match_number}</b>
-                        <span>${m.time ? new Date(m.time * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
-                    </div>
-                    <div class="alliance-row red ${isResult && rScore > bScore ? 'winner-row' : ''}">
-                        <span>${redTeams.map(t => t === TARGET_TEAM ? `<span class="target-team">${t}</span>` : t).join(', ')}</span>
-                        <span class="score">${rScore > -1 ? rScore : '-'}</span>
-                    </div>
-                    <div class="alliance-row blue ${isResult && bScore > rScore ? 'winner-row' : ''}">
-                        <span>${blueTeams.map(t => t === TARGET_TEAM ? `<span class="target-team">${t}</span>` : t).join(', ')}</span>
-                        <span class="score">${bScore > -1 ? bScore : '-'}</span>
-                    </div>
-                </div>`;
-        }).join('');
+        return `
+            <div class="match-card ${isFeatured ? 'featured' : ''}">
+                <div class="match-header">
+                    <span>QUAL ${m.match_number}</span>
+                    <span>${m.time ? new Date(m.time * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
+                </div>
+                <div class="alliance red ${isResult && rS > bS ? 'winner' : ''}">
+                    <span>${rK.map(t => t === CONFIG.TEAM ? `<span class="target-team">${t}</span>` : t).join(', ')}</span>
+                    <span class="score">${rS > -1 ? rS : ''}</span>
+                </div>
+                <div class="alliance blue ${isResult && bS > rS ? 'winner' : ''}">
+                    <span>${bK.map(t => t === CONFIG.TEAM ? `<span class="target-team">${t}</span>` : t).join(', ')}</span>
+                    <span class="score">${bS > -1 ? bS : ''}</span>
+                </div>
+            </div>`;
     }
 
-    function processRankings(ranks) {
+    function renderRankings(ranks) {
         const body = document.getElementById('standings-body');
-        if(!ranks) return;
+        if (!ranks) return;
         body.innerHTML = ranks.map(r => {
-            const teamNum = r.team_key.replace('frc', '');
+            const team = r.team_key.replace('frc','');
             return `
-                <tr class="${teamNum === TARGET_TEAM ? 'my-team-row' : ''}">
-                    <td>${r.rank}</td>
-                    <td class="${teamNum === TARGET_TEAM ? 'target-team' : ''}">${teamNum}</td>
-                    <td>${r.record.wins}-${r.record.losses}-${r.record.ties}</td>
-                    <td>${(r.extra_stats[0] || 0).toFixed(2)}</td>
-                    <td>${r.qual_average || 0}</td>
+                <tr class="${team === CONFIG.TEAM ? 'highlight-row' : ''}">
+                    <td style="width: 15%"><b>${r.rank}</b></td>
+                    <td style="width: 25%" class="${team === CONFIG.TEAM ? 'target-team' : ''}">${team}</td>
+                    <td style="width: 25%">${r.record.wins}-${r.record.losses}-${r.record.ties}</td>
+                    <td style="width: 15%">${(r.extra_stats[0] || 0).toFixed(2)}</td>
+                    <td style="width: 20%">${r.qual_average || 0}</td>
                 </tr>`;
         }).join('');
     }
 
-    function showSection(id) {
-        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    function switchTab(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('btn-' + id).classList.add('active');
     }
 
-    // Refresh every 60 seconds
     setInterval(fetchData, 60000);
     fetchData();
 </script>
