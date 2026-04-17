@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4206 | Current Match</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', Impact, sans-serif;
+            overflow: hidden;
+        }
+
+        .label {
+            font-size: 5vw;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: #888;
+            margin-bottom: -20px;
+        }
+
+        .match-number {
+            font-size: 40vw;
+            font-weight: 900;
+            line-height: 1;
+            color: #007bff; /* Blue accent */
+            text-shadow: 0 0 50px rgba(0, 123, 255, 0.4);
+        }
+
+        .status {
+            font-size: 3vw;
+            color: #444;
+            margin-top: 20px;
+        }
+
+        /* Subtle pulse effect to show it's live */
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="label">Current Match</div>
+    <div id="match-display" class="match-number pulse">--</div>
+    <div id="last-update" class="status">Connecting to TBA...</div>
+
+    <script>
+        const TBA_KEY = "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7";
+        const EVENT_KEY = "2026txcmp2";
+
+        async function updateCurrentMatch() {
+            try {
+                const response = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/matches/simple`, {
+                    headers: { 'X-TBA-Auth-Key': TBA_KEY }
+                });
+                const matches = await response.json();
+
+                // Get only Qualification matches
+                const quals = matches.filter(m => m.comp_level === 'qm');
+                
+                // Find the highest match number that has a score (last finished)
+                const finishedMatches = quals.filter(m => m.alliances.red.score !== -1);
+                
+                let currentMatch;
+                if (finishedMatches.length === 0) {
+                    currentMatch = 1; // Event hasn't started
+                } else {
+                    const lastFinished = Math.max(...finishedMatches.map(m => m.match_number));
+                    currentMatch = lastFinished + 1; // The one currently on the field
+                }
+
+                document.getElementById('match-display').innerText = currentMatch;
+                document.getElementById('last-update').innerText = "LIVE • Last Sync: " + new Date().toLocaleTimeString();
+                
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById('last-update').innerText = "Offline - Check Internet";
+            }
+        }
+
+        // Check for updates every 30 seconds
+        setInterval(updateCurrentMatch, 30000);
+        updateCurrentMatch();
+    </script>
+</body>
+</html>
