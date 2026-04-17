@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRC Match Dashboard - Team 4206 Tracker</title>
+    <title>Team 4206 | Live Event Dashboard</title>
     <style>
         :root {
             --red-alliance: #ff4d4d;
@@ -11,11 +11,12 @@
             --bg-dark: #0f0f0f;
             --card-bg: #1e1e1e;
             --text: #ffffff;
-            --highlight: #ffcc00; /* Gold for Team 4206 */
+            --highlight: #ffcc00;
+            --accent: #007bff;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text);
             margin: 0;
@@ -27,317 +28,202 @@
         nav {
             width: 100%;
             background: #000;
-            padding: 1.2rem;
+            padding: 1rem;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            border-bottom: 2px solid var(--accent);
         }
 
         button {
-            padding: 12px 24px;
+            padding: 10px 20px;
             cursor: pointer;
             background: #333;
-            color: #ccc;
-            border: 2px solid transparent;
-            border-radius: 6px;
+            color: white;
+            border: none;
+            border-radius: 4px;
             font-weight: bold;
-            transition: 0.3s;
+            transition: 0.2s;
         }
 
-        button.active {
-            background: #444;
-            color: white;
-            border-color: #007bff;
-        }
+        button.active { background: var(--accent); }
 
         .container {
             width: 95%;
-            max-width: 1400px;
-            margin: 30px 0;
+            max-width: 1200px;
+            margin: 20px 0;
         }
 
-        .view-section {
-            display: none;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 25px;
-        }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
 
-        .view-section.active {
+        /* Grid for Match Cards */
+        .match-grid {
             display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
         }
 
-        /* Match Card Styling */
+        /* Match Card Styles */
         .match-card {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
+            border-radius: 10px;
+            padding: 15px;
             border: 1px solid #333;
-            transition: transform 0.2s;
+            position: relative;
         }
 
-        .match-card:hover {
-            transform: translateY(-3px);
-        }
-
-        /* Highlight for Team 4206 */
-        .match-card.featured {
-            border: 2px solid var(--highlight);
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
-        }
-
-        .featured-tag {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--highlight);
-            color: black;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-bottom-left-radius: 8px;
-        }
-
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: #888;
-        }
-
-        .alliance-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .match-card.featured { border: 2px solid var(--highlight); box-shadow: 0 0 10px rgba(255,204,0,0.2); }
 
         .alliance-row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
         }
 
-        .red { background: rgba(255, 77, 77, 0.15); border-left: 6px solid var(--red-alliance); }
-        .blue { background: rgba(77, 148, 255, 0.15); border-left: 6px solid var(--blue-alliance); }
+        .red { background: rgba(255, 77, 77, 0.15); border-left: 5px solid var(--red-alliance); }
+        .blue { background: rgba(77, 148, 255, 0.15); border-left: 5px solid var(--blue-alliance); }
+        .winner-row { outline: 2px solid white; background: rgba(255,255,255,0.1); }
 
-        .team-list { 
-            display: flex;
-            gap: 10px;
-            font-family: monospace;
-            font-size: 1.2rem;
-        }
+        .target-team { color: var(--highlight); font-weight: bold; text-shadow: 0 0 5px var(--highlight); }
+        .score { font-size: 1.4rem; font-weight: bold; }
 
-        /* Highlighting 4206 specifically inside the list */
-        .target-team {
-            color: var(--highlight);
-            text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
-            font-weight: 800;
-        }
+        /* Standings Table */
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); margin-top: 10px; }
+        th { background: var(--accent); padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #333; }
+        .my-team-row { background: rgba(255,204,0,0.1); border-left: 4px solid var(--highlight); }
 
-        .score { font-size: 1.8rem; font-weight: 900; }
-        
-        .winner-row {
-            outline: 2px solid white;
-            background: rgba(255,255,255,0.1);
-        }
-
-        h2 { text-align: center; width: 100%; grid-column: 1 / -1; margin-bottom: 10px; }
+        h2 { border-bottom: 1px solid #444; padding-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <nav>
     <button onclick="showSection('upcoming')" id="btn-upcoming" class="active">NEXT 6 MATCHES</button>
-    <button onclick="showSection('results')" id="btn-results">MATCH HISTORY</button>
+    <button onclick="showSection('results')" id="btn-results">RESULTS</button>
+    <button onclick="showSection('standings')" id="btn-standings">STANDINGS</button>
 </nav>
 
 <div class="container">
     <div id="upcoming" class="view-section active">
-        </div>
+        <h2>Upcoming Matches</h2>
+        <div id="upcoming-grid" class="match-grid">Loading matches...</div>
+    </div>
 
     <div id="results" class="view-section">
-        </div>
+        <h2>Match History</h2>
+        <div id="results-grid" class="match-grid">Loading results...</div>
+    </div>
+
+    <div id="standings" class="view-section">
+        <h2>Current Standings</h2>
+        <table>
+            <thead>
+                <tr><th>Rank</th><th>Team</th><th>W-L-T</th><th>Avg RP</th><th>Total RP</th></tr>
+            </thead>
+            <tbody id="standings-body"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    const rawData = `match_key,scheduled_date,scheduled_time,comp_level,match_number,set_number,red1,red2,red3,blue1,blue2,blue3,red_score,blue_score
-2026txcmp2_qm1,2026-04-16,01:00 PM,qm,1,1,4063,457,2583,5503,8818,2158,440,61
-2026txcmp2_qm2,2026-04-16,01:09 PM,qm,2,1,10913,4206,8858,8177,8769,3035,197,96
-2026txcmp2_qm3,2026-04-16,01:18 PM,qm,3,1,5411,4192,9136,6357,7492,5572,137,311
-2026txcmp2_qm4,2026-04-16,01:27 PM,qm,4,1,9140,10385,4153,5427,2848,8576,218,357
-2026txcmp2_qm5,2026-04-16,01:36 PM,qm,5,1,418,4639,3310,8114,8749,231,240,265
-2026txcmp2_qm6,2026-04-16,01:45 PM,qm,6,1,10518,7312,7616,11169,6773,148,207,216
-2026txcmp2_qm7,2026-04-16,01:54 PM,qm,7,1,6369,2689,127,9128,11178,5414,542,414
-2026txcmp2_qm8,2026-04-16,02:03 PM,qm,8,1,9506,8177,3561,7492,3035,2714,158,438
-2026txcmp2_qm9,2026-04-16,02:12 PM,qm,9,1,8858,9136,4153,4063,5427,8818,222,245
-2026txcmp2_qm10,2026-04-16,02:21 PM,qm,10,1,5503,4192,231,2848,9140,5411,66,212
-2026txcmp2_qm11,2026-04-16,02:30 PM,qm,11,1,10518,11169,3310,8749,5572,4206,26,375
-2026txcmp2_qm12,2026-04-16,02:39 PM,qm,12,1,8576,418,9128,7616,8769,457,430,187
-2026txcmp2_qm13,2026-04-16,02:48 PM,qm,13,1,11178,4639,6773,2583,2714,10385,354,355
-2026txcmp2_qm14,2026-04-16,02:57 PM,qm,14,1,7312,127,5414,6357,9506,8114,319,264
-2026txcmp2_qm15,2026-04-16,03:06 PM,qm,15,1,2158,6369,3561,2689,148,10913,433,246
-2026txcmp2_qm16,2026-04-16,03:15 PM,qm,16,1,3035,4192,3310,4153,10518,4063,262,150
-2026txcmp2_qm17,2026-04-16,03:24 PM,qm,17,1,8769,11169,8749,8177,5427,9140,134,213
-2026txcmp2_qm18,2026-04-16,03:33 PM,qm,18,1,11178,4206,2583,5411,7616,10385,416,142
-2026txcmp2_qm19,2026-04-16,03:42 PM,qm,19,1,5414,6357,5503,8818,231,5572,169,175
-2026txcmp2_qm20,2026-04-16,03:51 PM,qm,20,1,9136,3561,2848,7312,418,6369,264,403
-2026txcmp2_qm21,2026-04-16,04:00 PM,qm,21,1,148,9506,8576,8858,2689,4639,323,257
-2026txcmp2_qm22,2026-04-16,04:09 PM,qm,22,1,2714,8114,127,457,2158,6773,367,450
-2026txcmp2_qm23,2026-04-16,04:18 PM,qm,23,1,9140,9128,7492,10913,8749,10385,593,223
-2026txcmp2_qm24,2026-04-16,04:27 PM,qm,24,1,8818,2583,5411,5414,8177,4192,90,211
-2026txcmp2_qm25,2026-04-16,04:36 PM,qm,25,1,11178,6357,3561,4206,4063,5503,251,381
-2026txcmp2_qm26,2026-04-16,04:45 PM,qm,26,1,418,4153,3035,5572,7312,9506,246,302
-2026txcmp2_qm27,2026-04-16,04:54 PM,qm,27,1,2714,5427,231,6369,8576,8114,335,476
-2026txcmp2_qm28,2026-04-16,05:03 PM,qm,28,1,10518,6773,8858,127,10913,4639,356,211
-2026txcmp2_qm29,2026-04-16,05:12 PM,qm,29,1,2848,7492,2689,9128,457,148,333,557
-2026txcmp2_qm30,2026-04-16,05:21 PM,qm,30,1,3310,2158,8769,7616,9136,11169,178,100
-2026txcmp2_qm31,2026-04-16,05:30 PM,qm,31,1,4063,10385,6357,418,9140,9506,283,315
-2026txcmp2_qm32,2026-04-16,05:39 PM,qm,32,1,8177,7312,8114,4192,2583,6369,254,471
-2026txcmp2_qm33,2026-04-16,05:48 PM,qm,33,1,8818,10518,8749,8858,2714,11178,113,302
-2026txcmp2_qm34,2026-04-16,05:57 PM,qm,34,1,457,10913,3035,5414,231,148,301,359
-2026txcmp2_qm35,2026-04-16,06:06 PM,qm,35,1,8769,3561,8576,7492,5411,6773,268,322
-2026txcmp2_qm36,2026-04-16,06:15 PM,qm,36,1,4206,11169,9128,2158,4153,127,418,418,189
-2026txcmp2_qm37,2026-04-17,09:00 AM,qm,37,1,5503,7616,2689,4639,9136,5427,,
-2026txcmp2_qm38,2026-04-17,09:09 AM,qm,38,1,5572,2848,6369,3310,9506,4063,,
-2026txcmp2_qm39,2026-04-17,09:18 AM,qm,39,1,8114,3035,9140,8818,10385,5414,,
-2026txcmp2_qm40,2026-04-17,09:27 AM,qm,40,1,418,8769,5411,10913,11178,10518,,
-2026txcmp2_qm41,2026-04-17,09:36 AM,qm,41,1,127,231,9128,11169,8576,2714,,
-2026txcmp2_qm42,2026-04-17,09:45 AM,qm,42,1,148,5503,2583,4192,4153,5427,,
-2026txcmp2_qm43,2026-04-17,09:54 AM,qm,43,1,9136,7312,457,4206,4639,2848,,
-2026txcmp2_qm44,2026-04-17,10:03 AM,qm,44,1,6357,2158,8858,3310,7492,3561,,
-2026txcmp2_qm45,2026-04-17,10:12 AM,qm,45,1,6773,7616,5572,8749,2689,8177,,
-2026txcmp2_qm46,2026-04-17,10:21 AM,qm,46,1,11169,6369,4063,10385,9506,10518,,
-2026txcmp2_qm47,2026-04-17,10:30 AM,qm,47,1,127,148,11178,8576,3035,5503,,
-2026txcmp2_qm48,2026-04-17,10:39 AM,qm,48,1,7312,10913,2848,4639,8818,8769,,
-2026txcmp2_qm49,2026-04-17,10:48 AM,qm,49,1,5427,5414,7492,4192,418,4206,,
-2026txcmp2_qm50,2026-04-17,10:57 AM,qm,50,1,2583,6773,9136,9140,3310,8858,,
-2026txcmp2_qm51,2026-04-17,11:06 AM,qm,51,1,9128,7616,8177,457,6357,4153,,
-2026txcmp2_qm52,2026-04-17,11:15 AM,qm,52,1,2714,5411,8749,8114,3561,2689,,
-2026txcmp2_qm53,2026-04-17,11:24 AM,qm,53,1,2158,5572,4063,231,8576,4639,,
-2026txcmp2_qm54,2026-04-17,11:33 AM,qm,54,1,6369,3035,8818,7492,127,4192,,
-2026txcmp2_qm55,2026-04-17,11:42 AM,qm,55,1,2583,8858,11169,2848,11178,418,,
-2026txcmp2_qm56,2026-04-17,11:51 AM,qm,56,1,9506,457,5427,9136,3310,10913,,
-2026txcmp2_qm57,2026-04-17,12:00 PM,qm,57,1,5411,4206,6357,6773,4153,2714,,
-2026txcmp2_qm58,2026-04-17,12:09 PM,qm,58,1,5572,148,8177,8114,10385,2158,,
-2026txcmp2_qm59,2026-04-17,12:18 PM,qm,59,1,8769,9140,231,2689,9128,7312,,
-2026txcmp2_qm60,2026-04-17,01:30 PM,qm,60,1,8749,5414,7616,3561,5503,10518,,
-2026txcmp2_qm61,2026-04-17,01:39 PM,qm,61,1,7492,9136,418,3035,2583,4639,,
-2026txcmp2_qm62,2026-04-17,01:48 PM,qm,62,1,8576,6357,8818,6369,4206,5427,,
-2026txcmp2_qm63,2026-04-17,01:57 PM,qm,63,1,4192,8114,11178,5572,10913,11169,,
-2026txcmp2_qm64,2026-04-17,02:06 PM,qm,64,1,8858,9128,10385,2158,5411,7312,,
-2026txcmp2_qm65,2026-04-17,02:15 PM,qm,65,1,3561,127,9140,10518,457,8177,,
-2026txcmp2_qm66,2026-04-17,02:24 PM,qm,66,1,9506,2714,8769,3310,5503,8749,,
-2026txcmp2_qm67,2026-04-17,02:33 PM,qm,67,1,6773,5414,2689,148,2848,4153,,
-2026txcmp2_qm68,2026-04-17,02:42 PM,qm,68,1,231,4063,418,7616,8818,7492,,
-2026txcmp2_qm69,2026-04-17,02:51 PM,qm,69,1,4639,2158,11169,5411,8858,6369,,
-2026txcmp2_qm70,2026-04-17,03:00 PM,qm,70,1,5427,2583,127,3561,5572,9128,,
-2026txcmp2_qm71,2026-04-17,03:09 PM,qm,71,1,10385,3310,457,6357,4192,8769,,
-2026txcmp2_qm72,2026-04-17,03:18 PM,qm,72,1,9140,5503,2714,4206,148,7312,,
-2026txcmp2_qm73,2026-04-17,03:27 PM,qm,73,1,231,8177,6773,11178,2689,9506,,
-2026txcmp2_qm74,2026-04-17,03:36 PM,qm,74,1,2848,4063,7616,5414,10518,8114,,
-2026txcmp2_qm75,2026-04-17,03:45 PM,qm,75,1,4153,8576,10913,3035,8749,9136,,
-2026txcmp2_qm76,2026-04-17,03:54 PM,qm,76,1,4639,3561,5411,9128,8818,3310,,
-2026txcmp2_qm77,2026-04-17,04:03 PM,qm,77,1,10385,8769,148,11169,127,418,,
-2026txcmp2_qm78,2026-04-17,04:12 PM,qm,78,1,5503,6369,11178,6773,9140,4192,,
-2026txcmp2_qm79,2026-04-17,04:21 PM,qm,79,1,7616,8114,4206,231,8858,9506,,
-2026txcmp2_qm80,2026-04-17,04:30 PM,qm,80,1,2689,10518,8576,7312,7492,2583,,
-2026txcmp2_qm81,2026-04-17,04:39 PM,qm,81,1,5427,8749,6357,3035,2848,2158,,
-2026txcmp2_qm82,2026-04-17,04:48 PM,qm,82,1,8177,2714,10913,4063,5414,9136,,
-2026txcmp2_qm83,2026-04-17,04:57 PM,qm,83,1,4153,11178,5572,457,6369,9140,,
-2026txcmp2_qm84,2026-04-17,05:06 PM,qm,84,1,10385,4639,4192,3561,231,7616,,
-2026txcmp2_qm85,2026-04-17,05:15 PM,qm,85,1,2689,418,8818,8576,3310,4206,,
-2026txcmp2_qm86,2026-04-17,05:24 PM,qm,86,1,9506,6773,3035,2583,9128,2158,,
-2026txcmp2_qm87,2026-04-17,05:33 PM,qm,87,1,148,5427,10518,9136,8177,6357,,
-2026txcmp2_qm88,2026-04-17,05:42 PM,qm,88,1,10913,8114,7492,4153,11169,5503,,
-2026txcmp2_qm89,2026-04-17,05:51 PM,qm,89,1,2714,5572,5414,8769,8858,2848,,
-2026txcmp2_qm90,2026-04-17,06:00 PM,qm,90,1,8749,4063,7312,127,5411,457,,`;
-
+    const TBA_KEY = "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7";
+    const EVENT_KEY = "2026txcmp2";
     const TARGET_TEAM = "4206";
 
-    function parseCSV(csv) {
-        const lines = csv.trim().split('\n');
-        const headers = lines[0].split(',');
-        return lines.slice(1).map(line => {
-            const values = line.split(',');
-            const obj = {};
-            headers.forEach((header, i) => obj[header] = values[i]);
-            return obj;
-        });
+    async function fetchData() {
+        try {
+            // Fetch Matches
+            const mRes = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/matches/simple`, {
+                headers: { 'X-TBA-Auth-Key': TBA_KEY }
+            });
+            const matches = await mRes.json();
+            
+            // Fetch Standings
+            const sRes = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/rankings`, {
+                headers: { 'X-TBA-Auth-Key': TBA_KEY }
+            });
+            const rankings = await sRes.json();
+
+            processMatches(matches);
+            processRankings(rankings.rankings);
+        } catch (e) {
+            console.error("Fetch failed", e);
+        }
     }
 
-    const matches = parseCSV(rawData);
+    function processMatches(matches) {
+        const sorted = matches
+            .filter(m => m.comp_level === 'qm')
+            .sort((a, b) => a.match_number - b.match_number);
 
-    // Filter logic
-    const finishedMatches = matches.filter(m => m.red_score !== "" && m.red_score !== undefined);
-    const upcomingMatches = matches.filter(m => m.red_score === "" || m.red_score === undefined);
+        const finished = sorted.filter(m => m.alliances.red.score !== -1);
+        const upcoming = sorted.filter(m => m.alliances.red.score === -1);
 
-    function formatTeamList(teams) {
-        return teams.split(',').map(t => 
-            t.trim() === TARGET_TEAM ? `<span class="target-team">${t}</span>` : t
-        ).join(', ');
+        renderMatchGrid('upcoming-grid', upcoming.slice(0, 6), false);
+        renderMatchGrid('results-grid', [...finished].reverse(), true);
     }
 
-    function createMatchCard(m, isResult = false) {
-        // Check if our team is in this match
-        const teams = [m.red1, m.red2, m.red3, m.blue1, m.blue2, m.blue3];
-        const hasTarget = teams.includes(TARGET_TEAM);
-        
-        const redScore = parseInt(m.red_score) || 0;
-        const blueScore = parseInt(m.blue_score) || 0;
-        const redWin = redScore > blueScore;
-        const blueWin = blueScore > redScore;
+    function renderMatchGrid(id, matches, isResult) {
+        const container = document.getElementById(id);
+        container.innerHTML = matches.map(m => {
+            const redTeams = m.alliances.red.team_keys.map(k => k.replace('frc', ''));
+            const blueTeams = m.alliances.blue.team_keys.map(k => k.replace('frc', ''));
+            const hasTarget = [...redTeams, ...blueTeams].includes(TARGET_TEAM);
+            
+            const rScore = m.alliances.red.score;
+            const bScore = m.alliances.blue.score;
 
-        return `
-            <div class="match-card ${hasTarget ? 'featured' : ''}">
-                ${hasTarget ? '<div class="featured-tag">TEAM '+TARGET_TEAM+' MATCH</div>' : ''}
-                <div class="match-header">
-                    <span>QUAL ${m.match_number}</span>
-                    <span>${m.scheduled_time}</span>
-                </div>
-                <div class="alliance-container">
-                    <div class="alliance-row red ${isResult && redWin ? 'winner-row' : ''}">
-                        <div class="team-list">${formatTeamList(`${m.red1},${m.red2},${m.red3}`)}</div>
-                        <div class="score">${m.red_score || '-'}</div>
+            return `
+                <div class="match-card ${hasTarget ? 'featured' : ''}">
+                    <div style="display:flex; justify-content:space-between; color:#888; font-size:0.8rem">
+                        <b>QUAL ${m.match_number}</b>
+                        <span>${m.time ? new Date(m.time * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
                     </div>
-                    <div class="alliance-row blue ${isResult && blueWin ? 'winner-row' : ''}">
-                        <div class="team-list">${formatTeamList(`${m.blue1},${m.blue2},${m.blue3}`)}</div>
-                        <div class="score">${m.blue_score || '-'}</div>
+                    <div class="alliance-row red ${isResult && rScore > bScore ? 'winner-row' : ''}">
+                        <span>${redTeams.map(t => t === TARGET_TEAM ? `<span class="target-team">${t}</span>` : t).join(', ')}</span>
+                        <span class="score">${rScore > -1 ? rScore : '-'}</span>
                     </div>
-                </div>
-            </div>
-        `;
+                    <div class="alliance-row blue ${isResult && bScore > rScore ? 'winner-row' : ''}">
+                        <span>${blueTeams.map(t => t === TARGET_TEAM ? `<span class="target-team">${t}</span>` : t).join(', ')}</span>
+                        <span class="score">${bScore > -1 ? bScore : '-'}</span>
+                    </div>
+                </div>`;
+        }).join('');
     }
 
-    function render() {
-        // UPCOMING: Force exactly 6
-        const upcomingContainer = document.getElementById('upcoming');
-        const nextSix = upcomingMatches.slice(0, 6);
-        upcomingContainer.innerHTML = `<h2>Upcoming Schedule</h2>` + nextSix.map(m => createMatchCard(m)).join('');
-
-        // RESULTS
-        const resultsContainer = document.getElementById('results');
-        resultsContainer.innerHTML = `<h2>Recent Results</h2>` + [...finishedMatches].reverse().map(m => createMatchCard(m, true)).join('');
+    function processRankings(ranks) {
+        const body = document.getElementById('standings-body');
+        if(!ranks) return;
+        body.innerHTML = ranks.map(r => {
+            const teamNum = r.team_key.replace('frc', '');
+            return `
+                <tr class="${teamNum === TARGET_TEAM ? 'my-team-row' : ''}">
+                    <td>${r.rank}</td>
+                    <td class="${teamNum === TARGET_TEAM ? 'target-team' : ''}">${teamNum}</td>
+                    <td>${r.record.wins}-${r.record.losses}-${r.record.ties}</td>
+                    <td>${(r.extra_stats[0] || 0).toFixed(2)}</td>
+                    <td>${r.qual_average || 0}</td>
+                </tr>`;
+        }).join('');
     }
 
     function showSection(id) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        
         document.getElementById(id).classList.add('active');
         document.getElementById('btn-' + id).classList.add('active');
     }
 
-    render();
+    // Refresh every 60 seconds
+    setInterval(fetchData, 60000);
+    fetchData();
 </script>
-
 </body>
 </html>
