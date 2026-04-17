@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APOLLO 4206 | Team Focus</title>
+    <style>
+        :root {
+            --red-bg: #450a0a;
+            --blue-bg: #0a1a45;
+            --gold: #ffcc00;
+            --bg: #050505;
+            --card: rgba(20, 20, 20, 0.95);
+            --accent: #007bff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
+            background-size: cover;
+            color: white;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NAVIGATION */
+        nav {
+            display: flex;
+            background: #000;
+            padding: 10px 20px;
+            gap: 10px;
+            border-bottom: 2px solid var(--accent);
+            align-items: center;
+        }
+
+        .apollo-word {
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--gold);
+            margin-right: 20px;
+        }
+
+        nav button {
+            background: #222;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        nav button.active { background: var(--accent); }
+
+        /* VIEW CONTAINERS */
+        .view-section {
+            display: none;
+            flex-grow: 1;
+            padding: 40px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .view-section.active { display: flex; }
+
+        /* TAB: RECORD (High Visibility) */
+        .record-display {
+            text-align: center;
+            background: var(--card);
+            padding: 60px;
+            border-radius: 30px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 50px rgba(0, 123, 255, 0.2);
+        }
+
+        .record-val {
+            font-size: 15vw;
+            font-weight: 900;
+            line-height: 1;
+            margin: 20px 0;
+            color: var(--gold);
+        }
+
+        .rank-sub {
+            font-size: 4vw;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* TAB: NEXT 3 MATCHES */
+        .match-list {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .match-item {
+            flex: 1;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid #333;
+            transition: transform 0.3s;
+        }
+
+        .match-item.primary {
+            border: 3px solid var(--gold);
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .match-label { font-size: 1.2rem; color: #888; margin-bottom: 20px; font-weight: bold; text-align: center;}
+        
+        .alliance-stack { display: flex; flex-direction: column; gap: 10px; }
+        
+        .alliance-box {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .red { background: var(--red-bg); border: 1px solid #ff4d4d; }
+        .blue { background: var(--blue-bg); border: 1px solid #4d94ff; }
+        .target { color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+
+        /* TAB: VIDEO */
+        .video-box { width: 90%; height: 80vh; background: #000; border-radius: 15px; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="apollo-word">APOLLO // 4206</div>
+    <button onclick="switchTab('tab-record')" id="btn-tab-record" class="active">RECORD</button>
+    <button onclick="switchTab('tab-next')" id="btn-tab-next">OUR NEXT 3</button>
+    <button onclick="switchTab('tab-video')" id="btn-tab-video">LIVE STREAM</button>
+</nav>
+
+<div id="tab-record" class="view-section active">
+    <div class="record-display">
+        <div class="rank-sub">Current Record</div>
+        <div id="big-record" class="record-val">0 - 0 - 0</div>
+        <div id="big-rank" class="rank-sub">Ranking --</div>
+    </div>
+</div>
+
+<div id="tab-next" class="view-section">
+    <h2 style="margin-bottom: 40px; font-size: 2.5rem;">Upcoming Matches for 4206</h2>
+    <div id="next-3-container" class="match-list">
+        </div>
+</div>
+
+<div id="tab-video" class="view-section">
+    <div class="video-box">
+        <iframe src="https://player.twitch.tv/?channel=firstinspires&parent=localhost" height="100%" width="100%" allowfullscreen="true"></iframe>
+    </div>
+</div>
+
+<script>
+    const CONFIG = {
+        KEY: "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7",
+        EVENT: "2026txcmp2",
+        TEAM: "4206"
+    };
+
+    async function update() {
+        try {
+            const [mRes, rRes] = await Promise.all([
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/matches/simple`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} }),
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/rankings`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} })
+            ]);
+
+            const matches = await mRes.json();
+            const rankings = await rRes.json();
+
+            // 1. Process Record
+            const me = rankings.rankings.find(r => r.team_key === 'frc' + CONFIG.TEAM);
+            if(me) {
+                document.getElementById('big-record').innerText = `${me.record.wins} - ${me.record.losses} - ${me.record.ties}`;
+                document.getElementById('big-rank').innerText = `Ranking ${me.rank} | ${me.extra_stats[0].toFixed(2)} Avg RP`;
+            }
+
+            // 2. Process Next 3
+            const ourMatches = matches
+                .filter(m => m.comp_level === 'qm' && m.alliances.red.score === -1)
+                .filter(m => [...m.alliances.red.team_keys, ...m.alliances.blue.team_keys].includes('frc'+CONFIG.TEAM))
+                .sort((a,b) => a.match_number - b.match_number)
+                .slice(0, 3);
+
+            renderNext3(ourMatches);
+
+        } catch (e) { console.error(e); }
+    }
+
+    function renderNext3(matches) {
+        const container = document.getElementById('next-3-container');
+        if (matches.length === 0) {
+            container.innerHTML = "<h1>No upcoming matches found.</h1>";
+            return;
+        }
+
+        container.innerHTML = matches.map((m, index) => {
+            const rK = m.alliances.red.team_keys.map(k => k.replace('frc',''));
+            const bK = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
+            
+            return `
+                <div class="match-item ${index === 0 ? 'primary' : ''}">
+                    <div class="match-label">${index === 0 ? 'NEXT MATCH' : 'FOLLOWING'} | QUAL ${m.match_number}</div>
+                    <div class="alliance-stack">
+                        <div class="alliance-box red">
+                            ${rK.map(t => t === CONFIG.TEAM ? `<span class="target">${t}</span>` : t).join('<br>')}
+                        </div>
+                        <div style="text-align:center; font-weight:bold; color:#444;">VS</div>
+                        <div class="alliance-box blue">
+                            ${bK.map(t => t === CONFIG.TEAM ? `<span class="target">${t}</span>` : t).join('<br>')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function switchTab(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    setInterval(update, 30000);
+    update();
+</script>
+
+</body>
+</html>
