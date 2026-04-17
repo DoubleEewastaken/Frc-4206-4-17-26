@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Standings - Team 4206</title>
+    <style>
+        :root {
+            --bg-dark: #0f0f0f;
+            --card-bg: #1e1e1e;
+            --text: #ffffff;
+            --highlight: #ffcc00;
+            --accent: #007bff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            background: #000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--accent);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        tr:hover {
+            background: #252525;
+        }
+
+        .rank-col { font-weight: bold; color: #888; width: 50px; }
+        .team-col { font-weight: 800; font-size: 1.1rem; }
+        
+        /* Highlight Team 4206 Row */
+        .my-team {
+            background: rgba(255, 204, 0, 0.1) !important;
+            border-left: 4px solid var(--highlight);
+        }
+        .my-team .team-col { color: var(--highlight); }
+
+        .stats-badge {
+            font-size: 0.8rem;
+            background: #444;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>RANKINGS & STANDINGS</h1>
+    <p>2026 Texas District Championship</p>
+</div>
+
+<div class="container">
+    <table id="standingsTable">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Team</th>
+                <th>W-L-T</th>
+                <th>Avg RP</th>
+                <th>Total RP</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // Note: Paste your full rawData string here
+    const rawData = `match_key,scheduled_date,scheduled_time,comp_level,match_number,set_number,red1,red2,red3,blue1,blue2,blue3,red_score,blue_score
+2026txcmp2_qm1,2026-04-16,01:00 PM,qm,1,1,4063,457,2583,5503,8818,2158,440,61
+2026txcmp2_qm2,2026-04-16,01:09 PM,qm,2,1,10913,4206,8858,8177,8769,3035,197,96
+... (rest of your data) ...`;
+
+    function calculateStandings(csv) {
+        const lines = csv.trim().split('\n');
+        const headers = lines[0].split(',');
+        const matchData = lines.slice(1).map(line => line.split(','));
+        
+        let teams = {};
+
+        matchData.forEach(m => {
+            const redScore = parseInt(m[12]);
+            const blueScore = parseInt(m[13]);
+            
+            // Only process matches that have been played
+            if (isNaN(redScore)) return;
+
+            const redTeams = [m[6], m[7], m[8]];
+            const blueTeams = [m[9], m[10], m[11]];
+
+            let redRP = 0;
+            let blueRP = 0;
+
+            if (redScore > blueScore) redRP = 2; // Win
+            else if (blueScore > redScore) blueRP = 2; // Win
+            else { redRP = 1; blueRP = 1; } // Tie
+
+            // Update stats for each team
+            const updateTeam = (teamNum, rp, score, opponentScore) => {
+                if (!teams[teamNum]) {
+                    teams[teamNum] = { team: teamNum, rp: 0, played: 0, wins: 0, losses: 0, ties: 0 };
+                }
+                teams[teamNum].played++;
+                teams[teamNum].rp += rp;
+                if (rp === 2) teams[teamNum].wins++;
+                else if (rp === 1) teams[teamNum].ties++;
+                else teams[teamNum].losses++;
+            };
+
+            redTeams.forEach(t => updateTeam(t, redRP, redScore, blueScore));
+            blueTeams.forEach(t => updateTeam(t, blueRP, blueScore, redScore));
+        });
+
+        // Convert to array and sort by RP, then by Wins (simplified tiebreaker)
+        return Object.values(teams).sort((a, b) => (b.rp / b.played) - (a.rp / a.played) || b.rp - a.rp);
+    }
+
+    function renderStandings() {
+        const standings = calculateStandings(rawData);
+        const tbody = document.querySelector('#standingsTable tbody');
+        
+        tbody.innerHTML = standings.map((s, index) => `
+            <tr class="${s.team === '4206' ? 'my-team' : ''}">
+                <td class="rank-col">${index + 1}</td>
+                <td class="team-col">${s.team}</td>
+                <td>
+                    <span class="stats-badge">${s.wins}W - ${s.losses}L - ${s.ties}T</span>
+                </td>
+                <td>${(s.rp / s.played).toFixed(2)}</td>
+                <td>${s.rp}</td>
+            </tr>
+        `).join('');
+    }
+
+    renderStandings();
+</script>
+</body>
+</html>
