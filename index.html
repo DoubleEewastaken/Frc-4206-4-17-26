@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Match Dashboard</title>
+    <style>
+        :root {
+            --red-alliance: #ff4d4d;
+            --blue-alliance: #4d94ff;
+            --bg-dark: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        nav {
+            width: 100%;
+            background: #000;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        button.active {
+            background: #007bff;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        /* Match Card Styling */
+        .match-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 5px solid #555;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .alliance-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .alliance-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .red { background: rgba(255, 77, 77, 0.2); border: 1px solid var(--red-alliance); }
+        .blue { background: rgba(77, 148, 255, 0.2); border: 1px solid var(--blue-alliance); }
+
+        .team-list { font-weight: bold; letter-spacing: 1px; }
+        .score { font-size: 1.5rem; font-weight: 800; }
+        
+        .winner { border-width: 3px; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <button onclick="showSection('upcoming')" id="btn-upcoming" class="active">Upcoming Matches (Next 6)</button>
+    <button onclick="showSection('results')" id="btn-results">Previous Match Results</button>
+</nav>
+
+<div class="container">
+    <div id="upcoming" class="view-section active">
+        </div>
+
+    <div id="results" class="view-section">
+        </div>
+</div>
+
+<script>
+    // Your provided data
+    const rawData = `match_key,scheduled_date,scheduled_time,comp_level,match_number,set_number,red1,red2,red3,blue1,blue2,blue3,red_score,blue_score
+2026txcmp2_qm1,2026-04-16,01:00 PM,qm,1,1,4063,457,2583,5503,8818,2158,440,61
+2026txcmp2_qm2,2026-04-16,01:09 PM,qm,2,1,10913,4206,8858,8177,8769,3035,197,96
+2026txcmp2_qm3,2026-04-16,01:18 PM,qm,3,1,5411,4192,9136,6357,7492,5572,137,311
+2026txcmp2_qm4,2026-04-16,01:27 PM,qm,4,1,9140,10385,4153,5427,2848,8576,218,357
+2026txcmp2_qm5,2026-04-16,01:36 PM,qm,5,1,418,4639,3310,8114,8749,231,240,265
+2026txcmp2_qm6,2026-04-16,01:45 PM,qm,6,1,10518,7312,7616,11169,6773,148,207,216
+2026txcmp2_qm7,2026-04-16,01:54 PM,qm,7,1,6369,2689,127,9128,11178,5414,542,414
+2026txcmp2_qm8,2026-04-16,02:03 PM,qm,8,1,9506,8177,3561,7492,3035,2714,158,438
+2026txcmp2_qm9,2026-04-16,02:12 PM,qm,9,1,8858,9136,4153,4063,5427,8818,222,245
+2026txcmp2_qm10,2026-04-16,02:21 PM,qm,10,1,5503,4192,231,2848,9140,5411,66,212
+2026txcmp2_qm11,2026-04-16,02:30 PM,qm,11,1,10518,11169,3310,8749,5572,4206,26,375
+2026txcmp2_qm12,2026-04-16,02:39 PM,qm,12,1,8576,418,9128,7616,8769,457,430,187
+2026txcmp2_qm13,2026-04-16,02:48 PM,qm,13,1,11178,4639,6773,2583,2714,10385,354,355
+2026txcmp2_qm14,2026-04-16,02:57 PM,qm,14,1,7312,127,5414,6357,9506,8114,319,264
+2026txcmp2_qm15,2026-04-16,03:06 PM,qm,15,1,2158,6369,3561,2689,148,10913,433,246
+2026txcmp2_qm16,2026-04-16,03:15 PM,qm,16,1,3035,4192,3310,4153,10518,4063,262,150
+2026txcmp2_qm17,2026-04-16,03:24 PM,qm,17,1,8769,11169,8749,8177,5427,9140,134,213
+2026txcmp2_qm18,2026-04-16,03:33 PM,qm,18,1,11178,4206,2583,5411,7616,10385,416,142
+2026txcmp2_qm19,2026-04-16,03:42 PM,qm,19,1,5414,6357,5503,8818,231,5572,169,175
+2026txcmp2_qm20,2026-04-16,03:51 PM,qm,20,1,9136,3561,2848,7312,418,6369,264,403
+2026txcmp2_qm21,2026-04-16,04:00 PM,qm,21,1,148,9506,8576,8858,2689,4639,323,257
+2026txcmp2_qm22,2026-04-16,04:09 PM,qm,22,1,2714,8114,127,457,2158,6773,367,450
+2026txcmp2_qm23,2026-04-16,04:18 PM,qm,23,1,9140,9128,7492,10913,8749,10385,593,223
+2026txcmp2_qm24,2026-04-16,04:27 PM,qm,24,1,8818,2583,5411,5414,8177,4192,90,211
+2026txcmp2_qm25,2026-04-16,04:36 PM,qm,25,1,11178,6357,3561,4206,4063,5503,251,381
+2026txcmp2_qm26,2026-04-16,04:45 PM,qm,26,1,418,4153,3035,5572,7312,9506,246,302
+2026txcmp2_qm27,2026-04-16,04:54 PM,qm,27,1,2714,5427,231,6369,8576,8114,335,476
+2026txcmp2_qm28,2026-04-16,05:03 PM,qm,28,1,10518,6773,8858,127,10913,4639,356,211
+2026txcmp2_qm29,2026-04-16,05:12 PM,qm,29,1,2848,7492,2689,9128,457,148,333,557
+2026txcmp2_qm30,2026-04-16,05:21 PM,qm,30,1,3310,2158,8769,7616,9136,11169,178,100
+2026txcmp2_qm31,2026-04-16,05:30 PM,qm,31,1,4063,10385,6357,418,9140,9506,283,315
+2026txcmp2_qm32,2026-04-16,05:39 PM,qm,32,1,8177,7312,8114,4192,2583,6369,254,471
+2026txcmp2_qm33,2026-04-16,05:48 PM,qm,33,1,8818,10518,8749,8858,2714,11178,113,302
+2026txcmp2_qm34,2026-04-16,05:57 PM,qm,34,1,457,10913,3035,5414,231,148,301,359
+2026txcmp2_qm35,2026-04-16,06:06 PM,qm,35,1,8769,3561,8576,7492,5411,6773,268,322
+2026txcmp2_qm36,2026-04-16,06:15 PM,qm,36,1,4206,11169,9128,2158,4153,127,418,189
+2026txcmp2_qm37,2026-04-17,09:00 AM,qm,37,1,5503,7616,2689,4639,9136,5427,,
+2026txcmp2_qm38,2026-04-17,09:09 AM,qm,38,1,5572,2848,6369,3310,9506,4063,,`;
+
+    function parseCSV(csv) {
+        const lines = csv.trim().split('\n');
+        const headers = lines[0].split(',');
+        return lines.slice(1).map(line => {
+            const values = line.split(',');
+            const obj = {};
+            headers.forEach((header, i) => obj[header] = values[i]);
+            return obj;
+        });
+    }
+
+    const matches = parseCSV(rawData);
+
+    // Filter logic: Matches with scores are "results", without scores are "upcoming"
+    const finishedMatches = matches.filter(m => m.red_score !== "" && m.red_score !== undefined);
+    const upcomingMatches = matches.filter(m => m.red_score === "" || m.red_score === undefined);
+
+    function createMatchCard(m, isResult = false) {
+        const redWin = parseInt(m.red_score) > parseInt(m.blue_score);
+        const blueWin = parseInt(m.blue_score) > parseInt(m.red_score);
+
+        return `
+            <div class="match-card">
+                <div class="match-header">
+                    <span>MATCH ${m.match_number}</span>
+                    <span>${m.scheduled_time}</span>
+                </div>
+                <div class="alliance-container">
+                    <div class="alliance-row red ${isResult && redWin ? 'winner' : ''}">
+                        <div class="team-list">${m.red1}, ${m.red2}, ${m.red3}</div>
+                        <div class="score">${m.red_score || '-'}</div>
+                    </div>
+                    <div class="alliance-row blue ${isResult && blueWin ? 'winner' : ''}">
+                        <div class="team-list">${m.blue1}, ${m.blue2}, ${m.blue3}</div>
+                        <div class="score">${m.blue_score || '-'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function render() {
+        // Render Upcoming (First 6)
+        const upcomingContainer = document.getElementById('upcoming');
+        upcomingContainer.innerHTML = upcomingMatches.slice(0, 6)
+            .map(m => createMatchCard(m)).join('');
+
+        // Render Results (Previous)
+        const resultsContainer = document.getElementById('results');
+        // Sort finished matches to show latest first
+        resultsContainer.innerHTML = [...finishedMatches].reverse()
+            .map(m => createMatchCard(m, true)).join('');
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    // Initial Load
+    render();
+</script>
+
+</body>
+</html>
