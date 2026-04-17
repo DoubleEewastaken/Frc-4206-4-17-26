@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APOLLO | Team 4206 Dashboard</title>
+    <style>
+        :root {
+            --red-bg: #450a0a;
+            --blue-bg: #0a1a45;
+            --gold: #ffcc00;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --accent: #007bff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            background-attachment: fixed;
+            color: white;
+            margin: 0;
+            overflow: hidden; /* We handle scrolling via containers */
+        }
+
+        /* Top Bar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            background: rgba(0,0,0,0.9);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .apollo-word {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: var(--gold);
+            text-transform: uppercase;
+        }
+
+        .fs-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Main Layout */
+        main {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            grid-template-rows: auto 1fr;
+            height: calc(100vh - 60px);
+            gap: 15px;
+            padding: 15px;
+        }
+
+        /* Section 1: NEXT MATCH (The Hero) */
+        #next-match-hero {
+            grid-column: 1 / 2;
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .match-num-big { font-size: 2rem; color: #888; }
+        .teams-giant { display: flex; gap: 40px; align-items: center; margin: 20px 0; }
+        .alliance-box { padding: 30px; border-radius: 15px; width: 300px; }
+        .alliance-box.red { background: var(--red-bg); border: 2px solid #ff4d4d; }
+        .alliance-box.blue { background: var(--blue-bg); border: 2px solid #4d94ff; }
+        .team-list-giant { font-size: 2.5rem; font-weight: 900; line-height: 1.2; }
+
+        /* Section 2: VIDEO STREAM */
+        #video-container {
+            grid-column: 1 / 2;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Section 3: RANKING & RECORD (Sidebar) */
+        #sidebar {
+            grid-column: 2 / 3;
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-card {
+            background: rgba(20,20,20,0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+
+        .record-huge {
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            color: var(--gold);
+        }
+
+        .stat-label { text-align: center; color: #888; text-transform: uppercase; font-size: 0.8rem; }
+
+        /* Scrolling Rank Table */
+        .rank-small { font-size: 0.85rem; width: 100%; border-collapse: collapse; }
+        .rank-small td { padding: 5px; border-bottom: 1px solid #222; }
+
+        .target-team { color: var(--gold); font-weight: bold; }
+
+        /* Bracket Placeholder */
+        #bracket {
+            flex-grow: 1;
+            font-size: 0.8rem;
+            overflow-y: auto;
+        }
+
+        /* Full Screen States */
+        .full-video #next-match-hero, .full-video #sidebar { display: none; }
+        .full-video #video-container { grid-column: 1 / 3; grid-row: 1 / 3; }
+    </style>
+</head>
+<body id="apollo-body">
+
+<header>
+    <div class="apollo-word">APOLLO // 4206</div>
+    <div id="clock" style="font-family: monospace; font-size: 1.2rem;">00:00:00</div>
+    <div>
+        <button class="fs-btn" onclick="toggleView('default')">DASH</button>
+        <button class="fs-btn" onclick="toggleView('video')">VIDEO</button>
+        <button class="fs-btn" onclick="toggleFullScreen()">FULLSCREEN</button>
+    </div>
+</header>
+
+<main id="main-layout">
+    <div id="next-match-hero">
+        <div class="match-num-big" id="next-match-label">LOADING NEXT MATCH...</div>
+        <div class="teams-giant">
+            <div class="alliance-box red">
+                <div class="stat-label" style="color:#ffb3b3">Red Alliance</div>
+                <div class="team-list-giant" id="red-hero">---</div>
+            </div>
+            <div style="font-size: 3rem; font-weight: 900; color: #444;">VS</div>
+            <div class="alliance-box blue">
+                <div class="stat-label" style="color:#b3d1ff">Blue Alliance</div>
+                <div class="team-list-giant" id="blue-hero">---</div>
+            </div>
+        </div>
+        <div id="match-countdown" style="color: var(--gold); font-weight: bold;"></div>
+    </div>
+
+    <div id="video-container">
+        <iframe src="https://player.twitch.tv/?channel=firstinspires&parent=localhost" allowfullscreen="true"></iframe>
+    </div>
+
+    <div id="sidebar">
+        <div class="sidebar-card">
+            <div class="stat-label">Our Record (W-L-T)</div>
+            <div class="record-huge" id="team-record">0-0-0</div>
+            <div class="stat-label" id="team-rank-box">Rank: -- | RP: --</div>
+        </div>
+
+        <div class="sidebar-card" style="height: 200px; overflow: hidden;">
+            <div class="stat-label" style="margin-bottom: 10px;">Event Rankings</div>
+            <table class="rank-small">
+                <tbody id="rank-list"></tbody>
+            </table>
+        </div>
+
+        <div class="sidebar-card" id="bracket">
+            <div class="stat-label">Playoff Bracket</div>
+            <div id="bracket-content" style="text-align: center; color: #555; margin-top: 20px;">
+                Bracket will populate during Alliance Selection
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const CONFIG = {
+        KEY: "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7",
+        EVENT: "2026txcmp2",
+        TEAM: "4206"
+    };
+
+    async function updateDashboard() {
+        try {
+            const [mRes, rRes] = await Promise.all([
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/matches/simple`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} }),
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/rankings`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} })
+            ]);
+
+            const matches = await mRes.json();
+            const rankings = await rRes.json();
+
+            processMatches(matches);
+            processRankings(rankings.rankings);
+        } catch (e) { console.log("Update Error", e); }
+    }
+
+    function processMatches(matches) {
+        const quals = matches.filter(m => m.comp_level === 'qm').sort((a,b) => a.match_number - b.match_number);
+        
+        // Find OUR next match
+        const ourNext = quals.find(m => {
+            const allTeams = [...m.alliances.red.team_keys, ...m.alliances.blue.team_keys];
+            return allTeams.includes('frc' + CONFIG.TEAM) && m.alliances.red.score === -1;
+        });
+
+        if (ourNext) {
+            document.getElementById('next-match-label').innerText = `OUR NEXT MATCH: QUAL ${ourNext.match_number}`;
+            document.getElementById('red-hero').innerHTML = formatTeams(ourNext.alliances.red.team_keys);
+            document.getElementById('blue-hero').innerHTML = formatTeams(ourNext.alliances.blue.team_keys);
+        } else {
+            document.getElementById('next-match-label').innerText = `QUAL MATCHES COMPLETE`;
+        }
+    }
+
+    function processRankings(ranks) {
+        if (!ranks) return;
+        
+        // Update Our Stats
+        const ourStats = ranks.find(r => r.team_key === 'frc' + CONFIG.TEAM);
+        if (ourStats) {
+            document.getElementById('team-record').innerText = `${ourStats.record.wins}-${ourStats.record.losses}-${ourStats.record.ties}`;
+            document.getElementById('team-rank-box').innerText = `Rank: ${ourStats.rank} | Avg RP: ${ourStats.extra_stats[0].toFixed(2)}`;
+        }
+
+        // Update Mini-Rankings
+        const list = document.getElementById('rank-list');
+        list.innerHTML = ranks.slice(0, 15).map(r => {
+            const t = r.team_key.replace('frc','');
+            return `<tr class="${t === CONFIG.TEAM ? 'target-team' : ''}">
+                <td>${r.rank}</td><td>${t}</td><td>${r.extra_stats[0].toFixed(2)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function formatTeams(keys) {
+        return keys.map(k => {
+            const num = k.replace('frc','');
+            return num === CONFIG.TEAM ? `<span class="target-team">${num}</span>` : num;
+        }).join('<br>');
+    }
+
+    function toggleView(view) {
+        const layout = document.getElementById('apollo-body');
+        if (view === 'video') layout.classList.add('full-video');
+        else layout.classList.remove('full-video');
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else if (document.exitFullscreen) document.exitFullscreen();
+    }
+
+    // Clock
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    setInterval(updateDashboard, 60000);
+    updateDashboard();
+</script>
+</body>
+</html>
