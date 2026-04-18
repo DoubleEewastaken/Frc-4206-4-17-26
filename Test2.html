@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4206 | Elims Command Center</title>
+    <style>
+        :root {
+            --red-alliance: #d32f2f;
+            --blue-alliance: #1976d2;
+            --gold: #ffcc00;
+            --bg-black: #050505;
+            --card-grey: #121212;
+            --text-white: #f0f0f0;
+            --accent-blue: #00a2ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Impact, sans-serif;
+            background-color: var(--bg-black);
+            color: var(--text-white);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- PERSISTENT TOP STATUS BAR --- */
+        .top-status {
+            background: #000;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            padding: 10px 20px;
+            border-bottom: 2px solid #333;
+            align-items: center;
+        }
+
+        .stat-box { text-align: center; }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--gold); display: block; }
+
+        .next-mini-list { display: flex; justify-content: center; gap: 10px; }
+        .mini-match { 
+            background: #222; 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            font-size: 0.85rem; 
+            border: 1px solid #444;
+        }
+        .mini-match.red-line { border-bottom: 3px solid var(--red-alliance); }
+        .mini-match.blue-line { border-bottom: 3px solid var(--blue-alliance); }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #000;
+            padding: 12px;
+            gap: 10px;
+            border-bottom: 2px solid var(--accent-blue);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav button {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        nav button.active {
+            background: var(--accent-blue);
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 162, 255, 0.4);
+        }
+
+        .view-container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: slideUp 0.3s ease-out; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- BUMPER MODE --- */
+        .bumper-hero {
+            height: 75vh;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 10px solid transparent;
+            transition: all 0.5s ease;
+        }
+        .red-mode { background: linear-gradient(135deg, #800000 0%, #200000 100%); border-color: var(--red-alliance); }
+        .blue-mode { background: linear-gradient(135deg, #001f3f 0%, #000814 100%); border-color: var(--blue-alliance); }
+        
+        .huge-num { font-size: 15rem; line-height: 1; margin: 0; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5)); }
+        .huge-label { font-size: 4rem; text-transform: uppercase; letter-spacing: 10px; margin: 0; }
+
+        /* --- TABLES & GRIDS --- */
+        .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .card { background: var(--card-grey); border: 1px solid #333; padding: 15px; border-radius: 10px; }
+        .card.my-match { border: 2px solid var(--gold); }
+        
+        .alliance-line { display: flex; justify-content: space-between; padding: 6px 10px; margin: 4px 0; border-radius: 4px; font-weight: bold; }
+        .red-line { background: rgba(211, 47, 47, 0.2); color: #ff9999; }
+        .blue-line { background: rgba(25, 118, 210, 0.2); color: #99ccff; }
+        
+        /* --- AUTO SCROLL TABLE --- */
+        .scroll-wrap { height: 60vh; overflow: hidden; position: relative; background: var(--card-grey); border-radius: 10px; }
+        #scroll-table { position: absolute; width: 100%; animation: autoScroll 35s linear infinite; }
+        @keyframes autoScroll { 0% { top: 0; } 90% { top: -110%; } 100% { top: 0; } }
+        
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 15px; border-bottom: 1px solid #222; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="top-status">
+    <div class="stat-box">
+        <span class="stat-label">4206 Record</span>
+        <span class="stat-value" id="live-record">--</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Next 3 (Elims Ready)</span>
+        <div class="next-mini-list" id="live-next-3"></div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Current Rank</span>
+        <span class="stat-value" id="live-rank">--</span>
+    </div>
+</div>
+
+<nav>
+    <button onclick="switchTab('tab-bumper')" id="btn-tab-bumper" class="active">Bumper View</button>
+    <button onclick="switchTab('tab-now')" id="btn-tab-now">On Field</button>
+    <button onclick="switchTab('tab-matches')" id="btn-tab-matches">Schedule</button>
+    <button onclick="switchTab('tab-standings')" id="btn-tab-standings">Rankings</button>
+    <button onclick="switchTab('tab-history')" id="btn-tab-history">History</button>
+</nav>
+
+<div class="view-container">
+
+    <section id="tab-bumper" class="view-section active">
+        <div id="bumper-card" class="bumper-hero">
+            <h2 class="huge-label" id="bumper-alliance-name">AWAITING MATCH</h2>
+            <h1 class="huge-num" id="bumper-match-id">--</h1>
+            <p id="bumper-partners" style="font-size: 2rem; margin-top: 20px;"></p>
+        </div>
+    </section>
+
+    <section id="tab-now" class="view-section">
+        <div style="text-align: center; padding: 100px 0;">
+            <span class="huge-label" style="color: #444; font-size: 3rem;">Live Match</span>
+            <div id="field-match-num" style="font-size: 20rem; color: var(--accent-blue); line-height: 1;">--</div>
+        </div>
+    </section>
+
+    <section id="tab-matches" class="view-section">
+        <h2>Full Event Schedule</h2>
+        <div id="full-schedule-grid" class="match-grid"></div>
+    </section>
+
+    <section id="tab-standings" class="view-section">
+        <h2>Live Rankings</h2>
+        <div class="scroll-wrap">
+            <div id="scroll-table">
+                <table id="rankings-table-body"></table>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-history" class="view-section">
+        <h2>Match Results</h2>
+        <div id="history-grid" class="match-grid"></div>
+    </section>
+
+</div>
+
+<script>
+    const CONFIG = {
+        KEY: "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7",
+        EVENT: "2026txcmp2",
+        TEAM: "4206"
+    };
+
+    async function updateDashboard() {
+        try {
+            const [mRes, rRes] = await Promise.all([
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/matches/simple`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} }),
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/rankings`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} })
+            ]);
+
+            const matches = await mRes.json();
+            const rankings = await rRes.json();
+
+            // 1. Sort Matches by time (Handles Elims vs Quals transition)
+            const allMatches = matches.sort((a,b) => a.time - b.time);
+            const finished = allMatches.filter(m => m.alliances.red.score !== -1);
+            const unplayed = allMatches.filter(m => m.alliances.red.score === -1);
+
+            // 2. Team 4206 Specific Data
+            const ourRank = rankings.rankings.find(r => r.team_key === 'frc'+CONFIG.TEAM);
+            if(ourRank) {
+                document.getElementById('live-record').innerText = `${ourRank.record.wins}-${ourRank.record.losses}-${ourRank.record.ties}`;
+                document.getElementById('live-rank').innerText = `#${ourRank.rank}`;
+            }
+
+            const ourUpcoming = allMatches.filter(m => 
+                m.alliances.red.score === -1 && 
+                (m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM) || m.alliances.blue.team_keys.includes('frc'+CONFIG.TEAM))
+            ).slice(0,3);
+
+            // Update Top Bar Next 3
+            document.getElementById('live-next-3').innerHTML = ourUpcoming.map(m => {
+                const isRed = m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
+                const label = m.comp_level === 'qm' ? `QM${m.match_number}` : `${m.comp_level.toUpperCase()}${m.set_number || ''}-${m.match_number}`;
+                return `<div class="mini-match ${isRed ? 'red-line' : 'blue-line'}">${label}</div>`;
+            }).join('') || 'Matches Finished';
+
+            // 3. BUMPER VIEW LOGIC
+            if(ourUpcoming.length > 0) {
+                const next = ourUpcoming[0];
+                const isRed = next.alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
+                const partners = (isRed ? next.alliances.red.team_keys : next.alliances.blue.team_keys)
+                    .map(k => k.replace('frc','')).filter(k => k !== CONFIG.TEAM);
+                
+                document.getElementById('bumper-card').className = `bumper-hero ${isRed ? 'red-mode' : 'blue-mode'}`;
+                document.getElementById('bumper-alliance-name').innerText = `${isRed ? 'RED' : 'BLUE'} ALLIANCE`;
+                document.getElementById('bumper-match-id').innerText = next.comp_level === 'qm' ? next.match_number : next.comp_level.toUpperCase() + next.match_number;
+                document.getElementById('bumper-partners').innerText = `Partners: ${partners.join(' & ')}`;
+            }
+
+            // 4. ON FIELD NOW
+            if(unplayed.length > 0) {
+                const field = unplayed[0];
+                document.getElementById('field-match-num').innerText = field.comp_level === 'qm' ? field.match_number : field.comp_level.toUpperCase() + field.match_number;
+            }
+
+            // 5. RENDER LISTS
+            document.getElementById('full-schedule-grid').innerHTML = unplayed.map(m => createCard(m)).join('');
+            document.getElementById('history-grid').innerHTML = [...finished].reverse().slice(0,12).map(m => createCard(m, true)).join('');
+            
+            // 6. RANKINGS TABLE
+            if(rankings.rankings) {
+                document.getElementById('rankings-table-body').innerHTML = rankings.rankings.map(r => `
+                    <tr ${r.team_key === 'frc'+CONFIG.TEAM ? 'style="color:var(--gold); background:rgba(255,204,0,0.1)"' : ''}>
+                        <td style="width:10%"><b>${r.rank}</b></td>
+                        <td style="width:20%">${r.team_key.replace('frc','')}</td>
+                        <td>${r.record.wins}-${r.record.losses}-${r.record.ties}</td>
+                        <td>${r.qual_average} RP</td>
+                    </tr>
+                `).join('');
+            }
+
+        } catch (e) { console.error("API Fetch Error", e); }
+    }
+
+    function createCard(m, isHistory = false) {
+        const red = m.alliances.red.team_keys.map(k => k.replace('frc',''));
+        const blue = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
+        const isMyMatch = [...red, ...blue].includes(CONFIG.TEAM);
+        const matchLabel = m.comp_level === 'qm' ? `Qualification ${m.match_number}` : `Playoff ${m.comp_level.toUpperCase()} ${m.match_number}`;
+
+        return `
+            <div class="card ${isMyMatch ? 'my-match' : ''}">
+                <div style="font-size:0.75rem; color:#666; margin-bottom:10px; font-weight:bold;">${matchLabel}</div>
+                <div class="alliance-line red-line">
+                    <span>${red.join(', ')}</span>
+                    <span>${m.alliances.red.score > -1 ? m.alliances.red.score : ''}</span>
+                </div>
+                <div class="alliance-line blue-line">
+                    <span>${blue.join(', ')}</span>
+                    <span>${m.alliances.blue.score > -1 ? m.alliances.blue.score : ''}</span>
+                </div>
+            </div>`;
+    }
+
+    function switchTab(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    setInterval(updateDashboard, 30000);
+    updateDashboard();
+</script>
+
+</body>
+</html>
