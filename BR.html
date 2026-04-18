@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4206 Playoff Bracket</title>
+    <style>
+        :root { --red: #ff1744; --blue: #2979ff; --bg: #0d1117; --line: #30363d; --text: #c9d1d9; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 20px; overflow-x: auto; }
+        h2 { text-align: center; color: white; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .bracket-container { display: flex; gap: 40px; padding: 20px; min-width: 1000px; }
+        .round { display: flex; flex-direction: column; justify-content: space-around; width: 200px; }
+        .round-title { text-align: center; font-size: 0.8rem; font-weight: bold; margin-bottom: 20px; color: #8b949e; }
+        
+        .match { background: #161b22; border: 1px solid var(--line); border-radius: 6px; margin: 10px 0; position: relative; }
+        .match-id { font-size: 0.6rem; padding: 2px 5px; background: var(--line); color: #8b949e; width: fit-content; border-bottom-right-radius: 4px; }
+        
+        .team { display: flex; justify-content: space-between; padding: 8px 12px; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+        .team:last-child { border-bottom: none; }
+        .team.winner { color: #58a6ff; font-weight: bold; background: rgba(88, 166, 255, 0.1); }
+        .team.red { border-left: 4px solid var(--red); }
+        .team.blue { border-left: 4px solid var(--blue); }
+        
+        .alliance-tag { font-weight: bold; margin-right: 8px; }
+        .score { font-family: monospace; }
+        
+        .highlight { border: 2px solid #f0883e !important; box-shadow: 0 0 10px rgba(240, 136, 62, 0.3); }
+        .section-label { writing-mode: vertical-rl; transform: rotate(180deg); background: #21262d; padding: 10px; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>Double Elimination Bracket</h2>
+
+    <div class="bracket-container">
+        <div class="section-label">UPPER</div>
+        
+        <div class="round">
+            <div class="round-title">ROUND 1</div>
+            <div class="match">
+                <div class="match-id">M1</div>
+                <div class="team red"><span><span class="alliance-tag">A1</span>1706+</span><span class="score">-</span></div>
+                <div class="team blue"><span><span class="alliance-tag">A8</span>1209+</span><span class="score">-</span></div>
+            </div>
+            <div class="match">
+                <div class="match-id">M2</div>
+                <div class="team red"><span><span class="alliance-tag">A4</span>2718+</span><span class="score">-</span></div>
+                <div class="team blue"><span><span class="alliance-tag">A5</span>6391+</span><span class="score">-</span></div>
+            </div>
+            <div class="match">
+                <div class="match-id">M3</div>
+                <div class="team red"><span><span class="alliance-tag">A2</span>3931+</span><span class="score">-</span></div>
+                <div class="team blue"><span><span class="alliance-tag">A7</span>3465+</span><span class="score">-</span></div>
+            </div>
+            <div class="match highlight">
+                <div class="match-id">M4</div>
+                <div class="team red"><span><span class="alliance-tag">A3</span>1939+</span><span class="score">-</span></div>
+                <div class="team blue"><span><span class="alliance-tag">A6</span>4206+</span><span class="score">-</span></div>
+            </div>
+        </div>
+
+        <div class="round">
+            <div class="round-title">ROUND 2</div>
+            <div class="match">
+                <div class="match-id">M7</div>
+                <div class="team red">Winner M1</div>
+                <div class="team blue">Winner M2</div>
+            </div>
+            <div class="match">
+                <div class="match-id">M8</div>
+                <div class="team red">Winner M3</div>
+                <div class="team blue">Winner M4</div>
+            </div>
+        </div>
+
+        <div class="round">
+            <div class="round-title">ROUND 3</div>
+            <div class="match">
+                <div class="match-id">M11</div>
+                <div class="team red">Winner M7</div>
+                <div class="team blue">Winner M8</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bracket-container" style="border-top: 2px dashed #30363d; margin-top: 40px;">
+        <div class="section-label">LOWER</div>
+        
+        <div class="round">
+            <div class="round-title">ROUND 2</div>
+            <div class="match">
+                <div class="match-id">M5</div>
+                <div class="team red">Loser M1</div>
+                <div class="team blue">Loser M2</div>
+            </div>
+            <div class="match">
+                <div class="match-id">M6</div>
+                <div class="team red">Loser M3</div>
+                <div class="team blue">Loser M4</div>
+            </div>
+        </div>
+
+        <div class="round">
+            <div class="round-title">ROUND 3</div>
+            <div class="match">
+                <div class="match-id">M9</div>
+                <div class="team red">Loser M8</div>
+                <div class="team blue">Winner M5</div>
+            </div>
+            <div class="match">
+                <div class="match-id">M10</div>
+                <div class="team red">Loser M7</div>
+                <div class="team blue">Winner M6</div>
+            </div>
+        </div>
+
+        <div class="round">
+            <div class="round-title">ROUND 4</div>
+            <div class="match">
+                <div class="match-id">M12</div>
+                <div class="team red">Winner M9</div>
+                <div class="team blue">Winner M10</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
