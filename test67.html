@@ -24,7 +24,7 @@
             overflow-x: hidden;
         }
 
-        /* --- PERSISTENT TOP STATUS BAR --- */
+        /* --- TOP STATUS BAR --- */
         .top-status {
             background: #000;
             display: grid;
@@ -45,6 +45,7 @@
             border-radius: 4px; 
             font-size: 0.85rem; 
             border: 1px solid #444;
+            color: #fff;
         }
         .mini-match.red-line { border-bottom: 3px solid var(--red-alliance); }
         .mini-match.blue-line { border-bottom: 3px solid var(--blue-alliance); }
@@ -70,7 +71,6 @@
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
             font-size: 0.8rem;
             text-transform: uppercase;
         }
@@ -78,82 +78,66 @@
         nav button.active {
             background: var(--accent);
             color: #000;
-            border-color: #fff;
             box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
         }
 
-        .view-container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .view-container { max-width: 1600px; margin: 20px auto; padding: 0 20px; }
         .view-section { display: none; }
-        .view-section.active { display: block; animation: slideUp 0.3s ease-out; }
+        .view-section.active { display: block; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- TRUE BUMPER MODE (PURE COLOR) --- */
+        /* --- BUMPER MODE (PURE COLOR) --- */
         .bumper-hero {
-            height: calc(100vh - 120px);
-            width: 100vw;
-            position: absolute;
-            top: 120px;
-            left: 0;
-            transition: background 1s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: calc(100vh - 150px);
+            width: 100%;
+            border-radius: 20px;
+            transition: background 0.8s ease;
         }
         .red-mode { background: #b71c1c; animation: pulseRed 3s infinite; }
         .blue-mode { background: #0d47a1; animation: pulseBlue 3s infinite; }
+        .idle-mode { background: #111; border: 2px dashed #333; }
         
-        @keyframes pulseRed { 0%, 100% { background: #b71c1c; } 50% { background: #ef5350; } }
-        @keyframes pulseBlue { 0%, 100% { background: #0d47a1; } 50% { background: #42a5f5; } }
+        @keyframes pulseRed { 0%, 100% { background: #b71c1c; } 50% { background: #ff5252; } }
+        @keyframes pulseBlue { 0%, 100% { background: #0d47a1; } 50% { background: #448aff; } }
 
-        /* --- ON FIELD NOW --- */
-        .huge-num { font-size: 20rem; line-height: 1; margin: 0; color: #fff; text-shadow: 0 0 40px rgba(255,255,255,0.4); }
-        .huge-label { font-size: 3rem; text-transform: uppercase; letter-spacing: 10px; margin: 0; color: var(--text-muted); }
-
-        /* --- TABLES & GRIDS --- */
-        .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .card { background: var(--card-grey); border: 1px solid #333; padding: 15px; border-radius: 10px; }
-        .card.my-match { border: 2px solid var(--gold); }
-        
-        .match-prefix { font-size: 0.8rem; color: #fff; margin-bottom: 10px; font-weight: 900; background: #333; padding: 2px 6px; border-radius: 4px; display: inline-block;}
-        .alliance-line { display: flex; justify-content: space-between; padding: 6px 10px; margin: 4px 0; border-radius: 4px; font-weight: bold; }
-        .red-line { background: rgba(255, 23, 68, 0.1); color: #ff8a80; }
-        .blue-line { background: rgba(41, 121, 255, 0.1); color: #82b1ff; }
-        
-        /* --- AUTO SCROLL TABLE --- */
-        .scroll-wrap { height: 60vh; overflow: hidden; position: relative; background: var(--card-grey); border-radius: 10px; }
-        #scroll-table { position: absolute; width: 100%; animation: autoScroll 35s linear infinite; }
-        #scroll-table:hover { animation-play-state: paused; }
-        @keyframes autoScroll { 0% { top: 0; } 90% { top: -110%; } 100% { top: 0; } }
-        
-        table { width: 100%; border-collapse: collapse; }
-        td, th { padding: 15px; border-bottom: 1px solid #222; text-align: left; }
-
-        /* --- ELIMS BRACKET STYLING --- */
+        /* --- BRACKET STYLING --- */
         .bracket-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            padding: 20px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
             background: var(--card-grey);
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 12px;
             overflow-x: auto;
         }
-        .bracket-column { display: flex; flex-direction: column; gap: 10px; }
-        .bracket-title { color: var(--gold); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; text-align: center; padding-bottom: 10px;}
+        .bracket-column { display: flex; flex-direction: column; gap: 8px; }
+        .bracket-title { color: var(--gold); font-weight: bold; font-size: 0.7rem; text-transform: uppercase; text-align: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px;}
         .bracket-node {
-            background: #222;
+            background: #000;
             border: 1px solid #444;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: #ccc;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
         }
-        .bracket-node.featured { border: 2px solid var(--gold); box-shadow: 0 0 10px rgba(255,234,0,0.2); }
-        .node-prefix { font-size: 0.7rem; color: #aaa; margin-bottom: 3px; display: block;}
+        .bracket-node.featured { border: 2px solid var(--gold); }
+        .node-prefix { font-size: 0.6rem; color: var(--gold); display: block; margin-bottom: 2px;}
         .node-score { float: right; font-weight: 900; color: #fff;}
-        .win { color: #fff !important; font-weight: bold;}
-        .loss { color: #666 !important;}
+        .win { color: #fff; font-weight: bold; }
+        .loss { color: #555; }
+
+        /* --- GENERAL UI --- */
+        .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: var(--card-grey); border: 1px solid #333; padding: 15px; border-radius: 10px; }
+        .card.my-match { border: 2px solid var(--gold); }
+        .match-num-badge { color: #fff; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px; display: block; }
+        .alliance-line { display: flex; justify-content: space-between; padding: 8px; margin: 2px 0; border-radius: 4px; font-weight: bold; }
+        .red-l { background: rgba(255, 23, 68, 0.15); color: #ff8a80; }
+        .blue-l { background: rgba(41, 121, 255, 0.15); color: #82b1ff; }
+
+        .scroll-wrap { height: 60vh; overflow: hidden; position: relative; background: var(--card-grey); }
+        #scroll-table { position: absolute; width: 100%; animation: autoScroll 40s linear infinite; }
+        @keyframes autoScroll { 0% { top: 0; } 90% { top: -110%; } 100% { top: 0; } }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 12px; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
@@ -164,18 +148,18 @@
         <span class="stat-value" id="live-record">0-0-0</span>
     </div>
     <div class="stat-box">
-        <span class="stat-label">Next 3 (Double Elim)</span>
+        <span class="stat-label">Playoff Path</span>
         <div class="next-mini-list" id="live-next-3"></div>
     </div>
     <div class="stat-box">
-        <span class="stat-label">Current Rank</span>
+        <span class="stat-label">Rank</span>
         <span class="stat-value" id="live-rank">--</span>
     </div>
 </div>
 
 <nav>
     <button onclick="switchTab('tab-bumper')" id="btn-tab-bumper" class="active">Bumpers</button>
-    <button onclick="switchTab('tab-bracket')" id="btn-tab-bracket">[Bracket]</button>
+    <button onclick="switchTab('tab-bracket')" id="btn-tab-bracket">Bracket</button>
     <button onclick="switchTab('tab-now')" id="btn-tab-now">On Field</button>
     <button onclick="switchTab('tab-matches')" id="btn-tab-matches">Schedule</button>
     <button onclick="switchTab('tab-standings')" id="btn-tab-standings">Rankings</button>
@@ -184,51 +168,56 @@
 <div class="view-container">
 
     <section id="tab-bumper" class="view-section active">
-        <div id="bumper-card" class="bumper-hero">
-            </div>
+        <div id="bumper-card" class="bumper-hero idle-mode"></div>
     </section>
 
     <section id="tab-bracket" class="view-section">
-        <h2>Double Elimination Playoffs</h2>
-        <div class="bracket-container" id="playoff-bracket">
+        <div class="bracket-container">
             <div class="bracket-column">
-                <div class="bracket-title">R1 | Upper</div>
-                <div id="br1-upper"></div>
+                <div class="bracket-title">R1 Upper</div>
+                <div id="m1"></div><div id="m2"></div><div id="m3"></div><div id="m4"></div>
             </div>
             <div class="bracket-column">
-                <div class="bracket-title">R2 | Upper</div>
-                <div id="br2-upper"></div>
+                <div class="bracket-title">R2 Upper</div>
+                <div id="m7"></div><div id="m8"></div>
+                <div class="bracket-title" style="margin-top:20px">R2 Lower</div>
+                <div id="m5"></div><div id="m6"></div>
             </div>
             <div class="bracket-column">
-                <div class="bracket-title">R2 | Lower</div>
-                <div id="br2-lower"></div>
+                <div class="bracket-title">R3 Upper</div>
+                <div id="m11"></div>
+                <div class="bracket-title" style="margin-top:20px">R3 Lower</div>
+                <div id="m9"></div><div id="m10"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">R4 Lower</div>
+                <div id="m12"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">R5 Lower Final</div>
+                <div id="m13"></div>
             </div>
             <div class="bracket-column">
                 <div class="bracket-title">Finals</div>
-                <div id="br-finals"></div>
+                <div id="f1"></div><div id="f2"></div><div id="f3"></div>
             </div>
         </div>
     </section>
 
     <section id="tab-now" class="view-section">
         <div style="text-align: center; padding: 100px 0;">
-            <span class="huge-label">On Field</span>
-            <div class="match-prefix" id="field-prefix" style="font-size: 2rem; padding: 10px 20px;"></div>
-            <div class="huge-num" id="field-match-num">--</div>
+            <span style="font-size: 3rem; color: var(--text-muted); text-transform: uppercase;">Live Match</span>
+            <div id="field-match-num" style="font-size: 20rem; color: #fff; line-height: 1; font-weight: 900;">--</div>
         </div>
     </section>
 
     <section id="tab-matches" class="view-section">
-        <h2>Schedule</h2>
         <div id="full-schedule-grid" class="match-grid"></div>
     </section>
 
     <section id="tab-standings" class="view-section">
-        <h2>Rankings</h2>
         <div class="scroll-wrap">
-            <div id="scroll-table">
-                <table id="rankings-table-body"></table>
-            </div>
+            <div id="scroll-table"><table id="rankings-table-body"></table></div>
         </div>
     </section>
 
@@ -251,12 +240,12 @@
             const matches = await mRes.json();
             const rankings = await rRes.json();
 
-            // 1. Sort Matches by time
             const allMatches = matches.sort((a,b) => a.time - b.time);
             const finished = allMatches.filter(m => m.alliances.red.score !== -1);
             const unplayed = allMatches.filter(m => m.alliances.red.score === -1);
+            const elims = allMatches.filter(m => m.comp_level !== 'qm');
 
-            // 2. Team 4206 Data
+            // 1. Team Stats
             const ourRank = rankings.rankings.find(r => r.team_key === 'frc'+CONFIG.TEAM);
             if(ourRank) {
                 document.getElementById('live-record').innerText = `${ourRank.record.wins}-${ourRank.record.losses}-${ourRank.record.ties}`;
@@ -268,76 +257,66 @@
                 (m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM) || m.alliances.blue.team_keys.includes('frc'+CONFIG.TEAM))
             ).slice(0,3);
 
-            // Update Top Bar Next 3
             document.getElementById('live-next-3').innerHTML = ourUpcoming.map(m => {
                 const isRed = m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
-                const label = m.comp_level === 'qm' ? `QM${m.match_number}` : `${m.comp_level.toUpperCase()}${m.set_number || ''}-${m.match_number}`;
+                const label = m.comp_level === 'qm' ? `QM${m.match_number}` : `${m.comp_level.toUpperCase()}${m.match_number}`;
                 return `<div class="mini-match ${isRed ? 'red-line' : 'blue-line'}">${label}</div>`;
-            }).join('') || '<div class="mini-match">Matches Finished</div>';
+            }).join('') || '<div class="mini-match">Done</div>';
 
-            // 3. BUMPER VIEW LOGIC (PURE COLOR)
+            // 2. Bumper Logic
             if(ourUpcoming.length > 0) {
-                const next = ourUpcoming[0];
-                const isRed = next.alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
+                const isRed = ourUpcoming[0].alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
                 document.getElementById('bumper-card').className = `bumper-hero ${isRed ? 'red-mode' : 'blue-mode'}`;
+            } else {
+                document.getElementById('bumper-card').className = 'bumper-hero idle-mode';
             }
 
-            // 4. ON FIELD NOW
+            // 3. On Field
             if(unplayed.length > 0) {
-                const field = unplayed[0];
-                document.getElementById('field-prefix').innerText = field.comp_level === 'qm' ? 'Quals' : 'Elims: ' + field.comp_level.toUpperCase();
-                document.getElementById('field-match-num').innerText = field.match_number;
+                const f = unplayed[0];
+                document.getElementById('field-match-num').innerText = f.comp_level === 'qm' ? f.match_number : f.comp_level.toUpperCase() + f.match_number;
             }
 
-            // 5. RENDER LISTS
-            document.getElementById('full-schedule-grid').innerHTML = unplayed.map(m => createCard(m)).join('');
-            
-            // 6. RANKINGS TABLE
-            if(rankings.rankings) {
-                document.getElementById('rankings-table-body').innerHTML = rankings.rankings.map(r => `
-                    <tr ${r.team_key === 'frc'+CONFIG.TEAM ? 'style="color:var(--gold); background:rgba(255,204,0,0.1)"' : ''}>
-                        <td style="width:10%"><b>${r.rank}</b></td>
-                        <td style="width:20%">${r.team_key.replace('frc','')}</td>
-                        <td>${r.record.wins}-${r.record.losses}-${r.record.ties}</td>
-                        <td>${(r.extra_stats[0] || 0).toFixed(2)}</td>
-                    </tr>
-                `).join('');
-            }
+            // 4. Bracket Rendering
+            const getMNode = (num, level = 'sf') => {
+                const m = elims.find(x => x.comp_level === level && x.match_number === num);
+                if(!m) return `<div class="bracket-node"><span class="node-prefix">${level.toUpperCase()}${num}</span><div>TBD<span class="node-score">--</span></div><div>TBD<span class="node-score">--</span></div></div>`;
+                const rS = m.alliances.red.score;
+                const bS = m.alliances.blue.score;
+                const teams = [...m.alliances.red.team_keys, ...m.alliances.blue.team_keys];
+                const isUs = teams.includes('frc'+CONFIG.TEAM);
+                return `
+                    <div class="bracket-node ${isUs ? 'featured' : ''}">
+                        <span class="node-prefix">${level.toUpperCase()}${num}</span>
+                        <div class="${rS > bS ? 'win' : 'loss'}">${m.alliances.red.team_keys.map(k=>k.replace('frc','')).join(',')}<span class="node-score">${rS>-1?rS:'--'}</span></div>
+                        <div class="${bS > rS ? 'win' : 'loss'}">${m.alliances.blue.team_keys.map(k=>k.replace('frc','')).join(',')}<span class="node-score">${bS>-1?bS:'--'}</span></div>
+                    </div>`;
+            };
 
-            // 7. BRACKET (Filler Logic for Demo)
-            renderBracket(matches.filter(m => m.comp_level !== 'qm'));
+            for(let i=1; i<=13; i++) document.getElementById('m'+i).innerHTML = getMNode(i);
+            document.getElementById('f1').innerHTML = getMNode(1, 'f');
+            document.getElementById('f2').innerHTML = getMNode(2, 'f');
+            document.getElementById('f3').innerHTML = getMNode(3, 'f');
 
-        } catch (e) { console.error("API Error", e); }
-    }
+            // 5. Schedule & Rankings
+            document.getElementById('full-schedule-grid').innerHTML = unplayed.map(m => {
+                const rK = m.alliances.red.team_keys.map(k => k.replace('frc',''));
+                const bK = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
+                const isUs = [...rK, ...bK].includes(CONFIG.TEAM);
+                return `
+                    <div class="card ${isUs ? 'my-match' : ''}">
+                        <span class="match-num-badge">${m.comp_level.toUpperCase()}${m.match_number}</span>
+                        <div class="alliance-line red-l"><span>${rK.join(', ')}</span><span>${m.alliances.red.score>-1?m.alliances.red.score:''}</span></div>
+                        <div class="alliance-line blue-l"><span>${bK.join(', ')}</span><span>${m.alliances.blue.score>-1?m.alliances.blue.score:''}</span></div>
+                    </div>`;
+            }).join('');
 
-    function createCard(m) {
-        const red = m.alliances.red.team_keys.map(k => k.replace('frc',''));
-        const blue = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
-        const isMyMatch = [...red, ...blue].includes(CONFIG.TEAM);
-        const prefix = m.comp_level === 'qm' ? 'QM' : m.comp_level.toUpperCase();
+            document.getElementById('rankings-table-body').innerHTML = rankings.rankings.map(r => `
+                <tr ${r.team_key === 'frc'+CONFIG.TEAM ? 'style="color:var(--gold)"' : ''}>
+                    <td>${r.rank}</td><td>${r.team_key.replace('frc','')}</td><td>${r.record.wins}-${r.record.losses}</td><td>${(r.extra_stats[0] || 0).toFixed(2)}</td>
+                </tr>`).join('');
 
-        return `
-            <div class="card ${isMyMatch ? 'my-match' : ''}">
-                <div class="match-prefix">${prefix} ${m.match_number}</div>
-                <div class="alliance-line red-line">
-                    <span>${red.join(', ')}</span>
-                    <span>${m.alliances.red.score > -1 ? m.alliances.red.score : ''}</span>
-                </div>
-                <div class="alliance-line blue-line">
-                    <span>${blue.join(', ')}</span>
-                    <span>${m.alliances.blue.score > -1 ? m.alliances.blue.score : ''}</span>
-                </div>
-            </div>`;
-    }
-
-    function renderBracket(elims) {
-        // Double Elimination visual placeholder tree
-        const fillerNode = (prefix) => `<div class="bracket-node"><span class="node-prefix">${prefix}</span><div>Alliance A<span class="node-score">--</span></div><div>Alliance B<span class="node-score">--</span></div></div>`;
-        
-        document.getElementById('br1-upper').innerHTML = fillerNode('SF1') + fillerNode('SF2') + fillerNode('SF3') + fillerNode('SF4');
-        document.getElementById('br2-upper').innerHTML = fillerNode('SF7 (Winners 1/2)') + fillerNode('SF8 (Winners 3/4)');
-        document.getElementById('br2-lower').innerHTML = fillerNode('SF5 (Losers 1/2)') + fillerNode('SF6 (Losers 3/4)');
-        document.getElementById('br-finals').innerHTML = fillerNode('FINALS (Match 1)') + fillerNode('FINALS (Match 2*)');
+        } catch (e) { console.error(e); }
     }
 
     function switchTab(id) {
@@ -350,6 +329,5 @@
     setInterval(updateDashboard, 30000);
     updateDashboard();
 </script>
-
 </body>
 </html>
