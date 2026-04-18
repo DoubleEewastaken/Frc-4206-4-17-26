@@ -6,94 +6,64 @@
     <title>DrGil Global Remote</title>
     <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
     <style>
-        :root { --red: #ff1744; --green: #00e676; --bg: #080808; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
+        body { background: #080808; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
+        .status { padding: 15px; margin-bottom: 20px; font-weight: bold; border-bottom: 2px solid #333; }
+        .online { color: #00e676; }
+        .offline { color: #ff1744; }
         
-        .status-bar { padding: 10px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; }
-        .online { background: rgba(0, 230, 118, 0.2); color: var(--green); border: 1px solid var(--green); }
-        .offline { background: rgba(255, 23, 68, 0.2); color: var(--red); border: 1px solid var(--red); }
-
         .btn { 
-            width: 100%; max-width: 400px; height: 150px; font-size: 2rem; font-weight: 900; 
-            margin: 15px 0; border-radius: 25px; border: none; cursor: pointer;
-            background: #222; color: #444; transition: 0.3s;
-            text-transform: uppercase;
+            width: 90%; height: 140px; font-size: 2rem; font-weight: 900; 
+            margin: 10px 0; border-radius: 20px; border: 4px solid #333; 
+            cursor: pointer; background: #1a1a1a; color: #444; transition: 0.2s;
         }
-        /* State: OFF */
-        .btn.inactive { background: #1a1a1a; color: #333; border: 2px solid #333; }
-        
-        /* State: ON (Green) */
+        /* Active State */
         .btn.active { 
-            background: var(--green); 
-            color: #000; 
-            box-shadow: 0 0 30px rgba(0, 230, 118, 0.4);
-            transform: scale(1.02);
+            background: #00e676; color: black; border-color: white;
+            box-shadow: 0 0 30px rgba(0, 230, 118, 0.5);
         }
-
-        .config-box { font-size: 0.7rem; color: #555; margin-top: 50px; }
     </style>
 </head>
 <body>
 
-    <div id="status" class="status-bar offline">CONNECTING TO HOTEL...</div>
+    <div id="status" class="status offline">HOTEL STATUS: OFFLINE</div>
 
-    <button id="btn-main" class="btn" onclick="switchScene('4/18/26-Main')">Main Scene</button>
-    <button id="btn-stream" class="btn" onclick="switchScene('4/18/26-Stream')">Stream Scene</button>
-
-    <div class="config-box">
-        TUNNEL: nimble-dispense-strife.ngrok-free.dev<br>
-        TARGET: Hotel OBS Laptop
-    </div>
+    <button id="main-btn" class="btn" onclick="setScene('4/18/26-Main')">MAIN SCENE</button>
+    <button id="stream-btn" class="btn" onclick="setScene('4/18/26-Stream')">STREAM SCENE</button>
 
     <script>
         const obs = new OBSWebSocket();
-        // YOUR NGROK LINK (Use wss:// for secure websocket)
-        const NGROK_URL = 'wss://nimble-dispense-strife.ngrok-free.dev'; 
-        const OBS_PASSWORD = 'K6Yn0di5rUHktAsD'; // Set this to your OBS WebSocket password
+        // The address from your ngrok terminal
+        const ADDR = 'wss://nimble-dispense-strife.ngrok-free.dev'; 
+        const PASS = 'K6Yn0di5rUHktAsD'; // Set this to your OBS password!
 
         async function connect() {
             try {
-                // Connect through the Ngrok tunnel
-                await obs.connect(NGROK_URL, OBS_PASSWORD);
+                await obs.connect(ADDR, PASS);
+                document.getElementById('status').innerText = "HOTEL STATUS: ONLINE";
+                document.getElementById('status').className = "status online";
                 
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerText = "TUNNEL ACTIVE - OBS CONNECTED";
-                statusDiv.className = "status-bar online";
-                
-                // Initial check to see which scene is live
+                // Get current scene to highlight the right button
                 const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
-                updateUI(currentProgramSceneName);
+                updateButtons(currentProgramSceneName);
             } catch (e) {
-                console.error(e);
-                document.getElementById('status').innerText = "CONNECTION FAILED - CHECK NGROK";
+                document.getElementById('status').innerText = "HOTEL STATUS: OFFLINE (Check Ngrok)";
+                setTimeout(connect, 5000); // Try again in 5s
             }
         }
 
-        async function switchScene(sceneName) {
+        async function setScene(name) {
             try {
-                await obs.call('SetCurrentProgramScene', { 'sceneName': sceneName });
-                // updateUI happens automatically via the listener below
-            } catch (e) {
-                alert("Error switching scene. Is OBS still running?");
-            }
+                await obs.call('SetCurrentProgramScene', { 'sceneName': name });
+            } catch (e) { alert("Command Failed"); }
         }
 
-        function updateUI(activeScene) {
-            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-            
-            if (activeScene === '4/18/26-Main') {
-                document.getElementById('btn-main').classList.add('active');
-            } else if (activeScene === '4/18/26-Stream') {
-                document.getElementById('btn-stream').classList.add('active');
-            }
+        function updateButtons(activeName) {
+            document.getElementById('main-btn').classList.toggle('active', activeName === '4/18/26-Main');
+            document.getElementById('stream-btn').classList.toggle('active', activeName === '4/18/26-Stream');
         }
 
-        // Listen for scene changes (even if someone changes it manually on the laptop)
-        obs.on('CurrentProgramSceneChanged', data => {
-            updateUI(data.sceneName);
-        });
-
-        // Run connection on load
+        obs.on('CurrentProgramSceneChanged', data => updateButtons(data.sceneName));
+        
         connect();
     </script>
 </body>
