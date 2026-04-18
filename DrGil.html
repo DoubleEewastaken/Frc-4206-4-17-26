@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DrGil Remote Control</title>
+    <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
+    <style>
+        body { background: #080808; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        .btn { 
+            width: 250px; height: 100px; font-size: 1.5rem; font-weight: bold; 
+            margin: 20px; border-radius: 15px; border: none; cursor: pointer;
+            background: #ff1744; color: white; transition: 0.3s;
+        }
+        .btn.active { background: #00e676; box-shadow: 0 0 20px #00e676; }
+        input { padding: 10px; margin: 10px; border-radius: 5px; border: none; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>DrGil OBS Remote</h1>
+    
+    <div id="setup">
+        <input id="ip" type="text" placeholder="Laptop Local IP (e.g. 192.168.1.50)">
+        <input id="pass" type="password" placeholder="OBS Password">
+        <button onclick="connectOBS()" style="padding:10px">Connect to OBS</button>
+    </div>
+
+    <div id="controls" style="display:none">
+        <button id="btn-main" class="btn" onclick="switchScene('4/18/26-Main', 'btn-main')">MAIN SCENE</button>
+        <button id="btn-stream" class="btn" onclick="switchScene('4/18/26-Stream', 'btn-stream')">STREAM SCENE</button>
+    </div>
+
+    <script>
+        const obs = new OBSWebSocket();
+        
+        async function connectOBS() {
+            const ip = document.getElementById('ip').value;
+            const pass = document.getElementById('pass').value;
+            try {
+                // We use the local IP of your laptop here
+                await obs.connect(`ws://${ip}:4455`, pass);
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('controls').style.display = 'block';
+                alert("Connected to OBS!");
+            } catch (e) {
+                alert("Failed to connect. Make sure OBS is open and WebSocket is enabled.");
+            }
+        }
+
+        async function switchScene(sceneName, btnId) {
+            try {
+                await obs.call('SetCurrentProgramScene', { 'sceneName': sceneName });
+                
+                // Reset buttons
+                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+                // Highlight active
+                document.getElementById(btnId).classList.add('active');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Listen for changes made inside OBS to update buttons
+        obs.on('CurrentProgramSceneChanged', data => {
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            if(data.sceneName === '4/18/26-Main') document.getElementById('btn-main').classList.add('active');
+            if(data.sceneName === '4/18/26-Stream') document.getElementById('btn-stream').classList.add('active');
+        });
+    </script>
+</body>
+</html>
