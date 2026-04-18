@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apollo Division Playoff Bracket</title>
+    <style>
+        :root { --red: #ed1c24; --blue: #0066b3; --bg: #121212; --card: #1e1e1e; --border: #333; --text: #e0e0e0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; }
+        h1 { text-align: center; color: #fff; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-weight: bold; }
+
+        .bracket-scroll { display: flex; flex-direction: column; align-items: center; overflow-x: auto; padding-bottom: 50px; }
+        .bracket-row { display: flex; gap: 25px; margin-bottom: 50px; min-width: 1100px; justify-content: center; }
+        
+        .column { display: flex; flex-direction: column; gap: 20px; width: 240px; }
+        .col-header { font-size: 0.75rem; font-weight: bold; color: #555; border-bottom: 2px solid #333; padding-bottom: 5px; text-align: center; text-transform: uppercase; }
+
+        .match { background: var(--card); border: 1px solid var(--border); border-radius: 4px; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .m-num { position: absolute; left: -25px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; font-weight: bold; color: #666; }
+        
+        .slot { display: flex; flex-direction: column; padding: 8px 12px; border-bottom: 1px solid #2a2a2a; }
+        .slot:last-child { border-bottom: none; }
+        .red { border-left: 6px solid var(--red); }
+        .blue { border-left: 6px solid var(--blue); }
+
+        .alliance-label { font-size: 0.65rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
+        .team-line { display: flex; justify-content: space-between; align-items: center; }
+        .team-nums { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
+        .score { background: #333; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 1rem; min-width: 30px; text-align: center; }
+        
+        /* Highlight 4206 */
+        .highlight { border: 2px solid #ffca28; background: #2d2a1e; }
+        .highlight .team-nums { color: #ffca28; }
+        
+        .winner { background: rgba(0, 200, 83, 0.1) !important; border-color: #00c853; }
+        .lower-bracket { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px dashed #444; }
+    </style>
+</head>
+<body>
+
+    <h1>APOLLO DIVISION</h1>
+    <div class="subtitle">FIRST IN TEXAS DISTRICT CHAMPIONSHIP</div>
+
+    <div class="bracket-scroll">
+        <div class="bracket-row">
+            <div class="column">
+                <div class="col-header">Round 1</div>
+                <div class="match">
+                    <div class="m-num">1</div>
+                    <div class="slot red"><span class="alliance-label">Alliance 1</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Alliance 8</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                </div>
+                <div class="match">
+                    <div class="m-num">2</div>
+                    <div class="slot red"><span class="alliance-label">Alliance 4</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Alliance 5</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                </div>
+                <div class="match">
+                    <div class="m-num">3</div>
+                    <div class="slot red"><span class="alliance-label">Alliance 2</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Alliance 7</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                </div>
+                <div class="match highlight">
+                    <div class="m-num">4</div>
+                    <div class="slot red"><span class="alliance-label">Alliance 3</span><div class="team-line"><span class="team-nums">---, ---, ---</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Alliance 6 (4206)</span><div class="team-line"><span class="team-nums">---, ---, 4206</span><span class="score">-</span></div></div>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="col-header">Round 2 (Upper)</div>
+                <div class="match" style="margin-top: 45px;">
+                    <div class="m-num">7</div>
+                    <div class="slot red"><span class="alliance-label">Winner M1</span><div class="team-line"><span class="team-nums">Teams TBD</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Winner M2</span><div class="team-line"><span class="team-nums">Teams TBD</span><span class="score">-</span></div></div>
+                </div>
+                <div class="match" style="margin-top: 105px;">
+                    <div class="m-num">8</div>
+                    <div class="slot red"><span class="alliance-label">Winner M3</span><div class="team-line"><span class="team-nums">Teams TBD</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Winner M4</span><div class="team-line"><span class="team-nums">Teams TBD</span><span class="score">-</span></div></div>
+                </div>
+            </div>
+            
+            <div class="column">
+                <div class="col-header">Round 4 (Upper)</div>
+                <div class="match" style="margin-top: 130px;">
+                    <div class="m-num">11</div>
+                    <div class="slot red"><span class="alliance-label">Winner M7</span><div class="team-line"><span class="team-nums">Teams TBD</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Winner M8</span><div class="team-line"><span class="team-nums">Teams TBD</span><span class="score">-</span></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bracket-row lower-bracket">
+            <div class="column">
+                <div class="col-header">Lower Round 2</div>
+                <div class="match">
+                    <div class="m-num">5</div>
+                    <div class="slot red"><span class="alliance-label">Loser M1</span><div class="team-line"><span class="team-nums">---</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Loser M2</span><div class="team-line"><span class="team-nums">---</span><span class="score">-</span></div></div>
+                </div>
+                <div class="match">
+                    <div class="m-num">6</div>
+                    <div class="slot red"><span class="alliance-label">Loser M3</span><div class="team-line"><span class="team-nums">---</span><span class="score">-</span></div></div>
+                    <div class="slot blue"><span class="alliance-label">Loser M4</span><div class="team-line"><span class="team-nums">---</span><span class="score">-</span></div></div>
+                </div>
+            </div>
+            
+            </div>
+    </div>
+
+</body>
+</html>
