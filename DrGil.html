@@ -2,69 +2,99 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DrGil Remote Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrGil Global Remote</title>
     <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
     <style>
-        body { background: #080808; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        :root { --red: #ff1744; --green: #00e676; --bg: #080808; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
+        
+        .status-bar { padding: 10px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; }
+        .online { background: rgba(0, 230, 118, 0.2); color: var(--green); border: 1px solid var(--green); }
+        .offline { background: rgba(255, 23, 68, 0.2); color: var(--red); border: 1px solid var(--red); }
+
         .btn { 
-            width: 250px; height: 100px; font-size: 1.5rem; font-weight: bold; 
-            margin: 20px; border-radius: 15px; border: none; cursor: pointer;
-            background: #ff1744; color: white; transition: 0.3s;
+            width: 100%; max-width: 400px; height: 150px; font-size: 2rem; font-weight: 900; 
+            margin: 15px 0; border-radius: 25px; border: none; cursor: pointer;
+            background: #222; color: #444; transition: 0.3s;
+            text-transform: uppercase;
         }
-        .btn.active { background: #00e676; box-shadow: 0 0 20px #00e676; }
-        input { padding: 10px; margin: 10px; border-radius: 5px; border: none; width: 200px; }
+        /* State: OFF */
+        .btn.inactive { background: #1a1a1a; color: #333; border: 2px solid #333; }
+        
+        /* State: ON (Green) */
+        .btn.active { 
+            background: var(--green); 
+            color: #000; 
+            box-shadow: 0 0 30px rgba(0, 230, 118, 0.4);
+            transform: scale(1.02);
+        }
+
+        .config-box { font-size: 0.7rem; color: #555; margin-top: 50px; }
     </style>
 </head>
 <body>
-    <h1>DrGil OBS Remote</h1>
-    
-    <div id="setup">
-        <input id="ip" type="text" placeholder="Laptop Local IP (e.g. 192.168.1.50)">
-        <input id="pass" type="password" placeholder="OBS Password">
-        <button onclick="connectOBS()" style="padding:10px">Connect to OBS</button>
-    </div>
 
-    <div id="controls" style="display:none">
-        <button id="btn-main" class="btn" onclick="switchScene('4/18/26-Main', 'btn-main')">MAIN SCENE</button>
-        <button id="btn-stream" class="btn" onclick="switchScene('4/18/26-Stream', 'btn-stream')">STREAM SCENE</button>
+    <div id="status" class="status-bar offline">CONNECTING TO HOTEL...</div>
+
+    <button id="btn-main" class="btn" onclick="switchScene('4/18/26-Main')">Main Scene</button>
+    <button id="btn-stream" class="btn" onclick="switchScene('4/18/26-Stream')">Stream Scene</button>
+
+    <div class="config-box">
+        TUNNEL: nimble-dispense-strife.ngrok-free.dev<br>
+        TARGET: Hotel OBS Laptop
     </div>
 
     <script>
         const obs = new OBSWebSocket();
-        
-        async function connectOBS() {
-            const ip = document.getElementById('ip').value;
-            const pass = document.getElementById('pass').value;
-            try {
-                // We use the local IP of your laptop here
-                await obs.connect(`ws://${ip}:4455`, pass);
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('controls').style.display = 'block';
-                alert("Connected to OBS!");
-            } catch (e) {
-                alert("Failed to connect. Make sure OBS is open and WebSocket is enabled.");
-            }
-        }
+        // YOUR NGROK LINK (Use wss:// for secure websocket)
+        const NGROK_URL = 'wss://nimble-dispense-strife.ngrok-free.dev'; 
+        const OBS_PASSWORD = 'YOUR_OBS_PASSWORD'; // Set this to your OBS WebSocket password
 
-        async function switchScene(sceneName, btnId) {
+        async function connect() {
             try {
-                await obs.call('SetCurrentProgramScene', { 'sceneName': sceneName });
+                // Connect through the Ngrok tunnel
+                await obs.connect(NGROK_URL, OBS_PASSWORD);
                 
-                // Reset buttons
-                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-                // Highlight active
-                document.getElementById(btnId).classList.add('active');
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerText = "TUNNEL ACTIVE - OBS CONNECTED";
+                statusDiv.className = "status-bar online";
+                
+                // Initial check to see which scene is live
+                const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
+                updateUI(currentProgramSceneName);
             } catch (e) {
                 console.error(e);
+                document.getElementById('status').innerText = "CONNECTION FAILED - CHECK NGROK";
             }
         }
 
-        // Listen for changes made inside OBS to update buttons
-        obs.on('CurrentProgramSceneChanged', data => {
+        async function switchScene(sceneName) {
+            try {
+                await obs.call('SetCurrentProgramScene', { 'sceneName': sceneName });
+                // updateUI happens automatically via the listener below
+            } catch (e) {
+                alert("Error switching scene. Is OBS still running?");
+            }
+        }
+
+        function updateUI(activeScene) {
             document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-            if(data.sceneName === '4/18/26-Main') document.getElementById('btn-main').classList.add('active');
-            if(data.sceneName === '4/18/26-Stream') document.getElementById('btn-stream').classList.add('active');
+            
+            if (activeScene === '4/18/26-Main') {
+                document.getElementById('btn-main').classList.add('active');
+            } else if (activeScene === '4/18/26-Stream') {
+                document.getElementById('btn-stream').classList.add('active');
+            }
+        }
+
+        // Listen for scene changes (even if someone changes it manually on the laptop)
+        obs.on('CurrentProgramSceneChanged', data => {
+            updateUI(data.sceneName);
         });
+
+        // Run connection on load
+        connect();
     </script>
 </body>
 </html>
