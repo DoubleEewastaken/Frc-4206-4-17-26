@@ -6,65 +6,122 @@
     <title>DrGil Global Remote</title>
     <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
     <style>
-        body { background: #080808; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
-        .status { padding: 15px; margin-bottom: 20px; font-weight: bold; border-bottom: 2px solid #333; }
-        .online { color: #00e676; }
-        .offline { color: #ff1744; }
+        :root { --red: #ff1744; --green: #00e676; --bg: #080808; --card: #1a1a1a; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Impact, sans-serif; text-align: center; padding: 20px; margin: 0; }
+        
+        .status-bar { 
+            padding: 15px; margin-bottom: 25px; border-radius: 12px; 
+            font-weight: bold; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.5s; border: 2px solid #333;
+        }
+        .online { background: rgba(0, 230, 118, 0.15); color: var(--green); border-color: var(--green); box-shadow: 0 0 15px rgba(0, 230, 118, 0.2); }
+        .offline { background: rgba(255, 23, 68, 0.15); color: var(--red); border-color: var(--red); }
+
+        .btn-container { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         
         .btn { 
-            width: 90%; height: 140px; font-size: 2rem; font-weight: 900; 
-            margin: 10px 0; border-radius: 20px; border: 4px solid #333; 
-            cursor: pointer; background: #1a1a1a; color: #444; transition: 0.2s;
+            width: 100%; max-width: 450px; height: 160px; font-size: 2.2rem; font-weight: 900; 
+            border-radius: 25px; border: 4px solid #333; cursor: pointer;
+            background: #111; color: #333; transition: 0.3s;
+            text-transform: uppercase; position: relative; overflow: hidden;
         }
-        /* Active State */
+
+        /* Active State (Green) */
         .btn.active { 
-            background: #00e676; color: black; border-color: white;
-            box-shadow: 0 0 30px rgba(0, 230, 118, 0.5);
+            background: var(--green); 
+            color: #000; 
+            border-color: #fff;
+            box-shadow: 0 0 40px rgba(0, 230, 118, 0.4);
+            transform: translateY(-5px);
         }
+
+        .btn:active { transform: scale(0.95); }
+
+        .footer-info { margin-top: 50px; font-size: 0.7rem; color: #444; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-    <div id="status" class="status offline">HOTEL STATUS: OFFLINE</div>
+    <div id="status" class="status-bar offline">CONNECTION: OFFLINE</div>
 
-    <button id="main-btn" class="btn" onclick="setScene('4/18/26-Main')">MAIN SCENE</button>
-    <button id="stream-btn" class="btn" onclick="setScene('4/18/26-Stream')">STREAM SCENE</button>
+    <div class="btn-container">
+        <button id="main-btn" class="btn" onclick="switchScene('4/18/26-Main')">MAIN SCENE</button>
+        <button id="stream-btn" class="btn" onclick="switchScene('4/18/26-Stream')">STREAM SCENE</button>
+    </div>
+
+    <div class="footer-info">
+        TUNNEL: nimble-dispense-strife.ngrok-free.dev<br>
+        OBS PORT: 4455 | PROTOCOL: WSS<br>
+        TEAM 4206 REMOTE COMMAND
+    </div>
 
     <script>
         const obs = new OBSWebSocket();
-        // The address from your ngrok terminal
-        const ADDR = 'wss://nimble-dispense-strife.ngrok-free.dev'; 
-        const PASS = 'K6Yn0di5rUHktAsD'; // Set this to your OBS password!
+        
+        // --- CONFIGURATION ---
+        const NGROK_ADDR = 'wss://nimble-dispense-strife.ngrok-free.dev'; 
+        const OBS_PASS = 'K6Yn0di5rUHktAsD'; 
 
-        async function connect() {
+        async function connectToHotel() {
             try {
-                await obs.connect(ADDR, PASS);
-                document.getElementById('status').innerText = "HOTEL STATUS: ONLINE";
-                document.getElementById('status').className = "status online";
+                await obs.connect(NGROK_ADDR, OBS_PASS);
                 
-                // Get current scene to highlight the right button
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerText = "CONNECTION: LIVE (HOTEL)";
+                statusDiv.className = "status-bar online";
+                
+                // Sync buttons with current OBS state
                 const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
-                updateButtons(currentProgramSceneName);
+                updateUI(currentProgramSceneName);
+
             } catch (e) {
-                document.getElementById('status').innerText = "HOTEL STATUS: OFFLINE (Check Ngrok)";
-                setTimeout(connect, 5000); // Try again in 5s
+                console.error("Connection failed:", e);
+                document.getElementById('status').innerText = "CONNECTION: OFFLINE (RETRYING...)";
+                document.getElementById('status').className = "status-bar offline";
+                
+                // Auto-retry every 5 seconds
+                setTimeout(connectToHotel, 5000);
             }
         }
 
-        async function setScene(name) {
+        async function switchScene(sceneName) {
             try {
-                await obs.call('SetCurrentProgramScene', { 'sceneName': name });
-            } catch (e) { alert("Command Failed"); }
+                await obs.call('SetCurrentProgramScene', { 'sceneName': sceneName });
+            } catch (e) {
+                console.error("Switch failed:", e);
+                alert("Failed to switch scene. Check Ngrok/OBS.");
+            }
         }
 
-        function updateButtons(activeName) {
-            document.getElementById('main-btn').classList.toggle('active', activeName === '4/18/26-Main');
-            document.getElementById('stream-btn').classList.toggle('active', activeName === '4/18/26-Stream');
+        function updateUI(activeScene) {
+            console.log("Active Scene:", activeScene);
+            
+            // Reset all buttons
+            document.getElementById('main-btn').classList.remove('active');
+            document.getElementById('stream-btn').classList.remove('active');
+
+            // Set active button
+            if (activeScene === '4/18/26-Main') {
+                document.getElementById('main-btn').classList.add('active');
+            } else if (activeScene === '4/18/26-Stream') {
+                document.getElementById('stream-btn').classList.add('active');
+            }
         }
 
-        obs.on('CurrentProgramSceneChanged', data => updateButtons(data.sceneName));
-        
-        connect();
+        // Listen for scene changes from OBS (Manual or Remote)
+        obs.on('CurrentProgramSceneChanged', data => {
+            updateUI(data.sceneName);
+        });
+
+        // Handle connection drops
+        obs.on('ConnectionClosed', () => {
+            document.getElementById('status').innerText = "CONNECTION: LOST";
+            document.getElementById('status').className = "status-bar offline";
+            connectToHotel();
+        });
+
+        // Initialize
+        connectToHotel();
     </script>
 </body>
 </html>
