@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4206 | Elims Command Center</title>
+    <style>
+        :root {
+            --red-alliance: #ff1744;
+            --blue-alliance: #2979ff;
+            --gold: #ffea00;
+            --bg-black: #080808;
+            --card-grey: #1a1a1a;
+            --text-main: #f5f5f5;
+            --text-muted: #888;
+            --accent: #00e5ff;
+            --highlight-bg: rgba(0, 229, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Impact, sans-serif;
+            background-color: var(--bg-black);
+            color: var(--text-main);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- TOP STATUS BAR --- */
+        .top-status {
+            background: #000;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            padding: 10px 20px;
+            border-bottom: 2px solid #333;
+            align-items: center;
+        }
+
+        .stat-box { text-align: center; }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--gold); display: block; }
+
+        .next-mini-list { display: flex; justify-content: center; gap: 10px; }
+        .mini-match { 
+            background: #222; 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            font-size: 0.85rem; 
+            border: 1px solid #444;
+            color: #fff;
+        }
+        .mini-match.red-line { border-bottom: 3px solid var(--red-alliance); }
+        .mini-match.blue-line { border-bottom: 3px solid var(--blue-alliance); }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #000;
+            padding: 12px;
+            gap: 10px;
+            border-bottom: 2px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav button {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        nav button.active {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        }
+
+        .view-container { max-width: 1600px; margin: 20px auto; padding: 0 20px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* --- BUMPER MODE (PURE COLOR) --- */
+        .bumper-hero {
+            height: calc(100vh - 150px);
+            width: 100%;
+            border-radius: 20px;
+            transition: background 0.8s ease;
+        }
+        .red-mode { background: #b71c1c; animation: pulseRed 3s infinite; }
+        .blue-mode { background: #0d47a1; animation: pulseBlue 3s infinite; }
+        .idle-mode { background: #111; border: 2px dashed #333; }
+        
+        @keyframes pulseRed { 0%, 100% { background: #b71c1c; } 50% { background: #ff5252; } }
+        @keyframes pulseBlue { 0%, 100% { background: #0d47a1; } 50% { background: #448aff; } }
+
+        /* --- BRACKET STYLING --- */
+        .bracket-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            background: var(--card-grey);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        .bracket-column { display: flex; flex-direction: column; gap: 8px; }
+        .bracket-title { color: var(--gold); font-weight: bold; font-size: 0.7rem; text-transform: uppercase; text-align: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px;}
+        
+        .bracket-node {
+            background: #000;
+            border: 1px solid #444;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transition: 0.3s;
+        }
+
+        /* HIGHLIGHTING CURRENT MATCH */
+        .bracket-node.current-match-live {
+            border: 3px solid var(--accent) !important;
+            box-shadow: 0 0 20px var(--accent);
+            transform: scale(1.05);
+            background: #111;
+            z-index: 10;
+        }
+
+        /* TEAM 4206 GOLD HIGHLIGHT */
+        .team-4206-gold {
+            color: var(--gold) !important;
+            font-weight: 900 !important;
+            text-shadow: 0 0 10px rgba(255, 234, 0, 0.6);
+        }
+
+        .node-prefix { font-size: 0.65rem; color: #fff; display: block; margin-bottom: 4px; font-weight: bold;}
+        .node-score { float: right; font-weight: 900; color: #fff;}
+        .win { color: #fff; font-weight: bold; }
+        .loss { color: #555; }
+
+        /* --- GENERAL UI --- */
+        .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: var(--card-grey); border: 1px solid #333; padding: 15px; border-radius: 10px; }
+        .card.my-match { border: 2px solid var(--gold); }
+        .match-num-badge { color: #fff; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px; display: block; }
+        .alliance-line { display: flex; justify-content: space-between; padding: 8px; margin: 2px 0; border-radius: 4px; font-weight: bold; }
+        .red-l { background: rgba(255, 23, 68, 0.15); color: #ff8a80; }
+        .blue-l { background: rgba(41, 121, 255, 0.15); color: #82b1ff; }
+
+        .scroll-wrap { height: 60vh; overflow: hidden; position: relative; background: var(--card-grey); }
+        #scroll-table { position: absolute; width: 100%; animation: autoScroll 40s linear infinite; }
+        @keyframes autoScroll { 0% { top: 0; } 90% { top: -110%; } 100% { top: 0; } }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 12px; border-bottom: 1px solid #222; }
+    </style>
+</head>
+<body>
+
+<div class="top-status">
+    <div class="stat-box">
+        <span class="stat-label">4206 Record</span>
+        <span class="stat-value" id="live-record">0-0-0</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Playoff Path</span>
+        <div class="next-mini-list" id="live-next-3"></div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Rank</span>
+        <span class="stat-value" id="live-rank">--</span>
+    </div>
+</div>
+
+<nav>
+    <button onclick="switchTab('tab-bumper')" id="btn-tab-bumper" class="active">Bumpers</button>
+    <button onclick="switchTab('tab-bracket')" id="btn-tab-bracket">Bracket</button>
+    <button onclick="switchTab('tab-now')" id="btn-tab-now">On Field</button>
+    <button onclick="switchTab('tab-matches')" id="btn-tab-matches">Schedule</button>
+    <button onclick="switchTab('tab-standings')" id="btn-tab-standings">Rankings</button>
+</nav>
+
+<div class="view-container">
+
+    <section id="tab-bumper" class="view-section active">
+        <div id="bumper-card" class="bumper-hero idle-mode"></div>
+    </section>
+
+    <section id="tab-bracket" class="view-section">
+        <div class="bracket-container">
+            <div class="bracket-column">
+                <div class="bracket-title">R1 Upper</div>
+                <div id="m1"></div><div id="m2"></div><div id="m3"></div><div id="m4"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">R2 Upper</div>
+                <div id="m7"></div><div id="m8"></div>
+                <div class="bracket-title" style="margin-top:20px">R2 Lower</div>
+                <div id="m5"></div><div id="m6"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">R3 Upper</div>
+                <div id="m11"></div>
+                <div class="bracket-title" style="margin-top:20px">R3 Lower</div>
+                <div id="m9"></div><div id="m10"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">R4 Lower</div>
+                <div id="m12"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">R5 Lower Final</div>
+                <div id="m13"></div>
+            </div>
+            <div class="bracket-column">
+                <div class="bracket-title">Finals</div>
+                <div id="f1"></div><div id="f2"></div><div id="f3"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-now" class="view-section">
+        <div style="text-align: center; padding: 100px 0;">
+            <span style="font-size: 3rem; color: var(--text-muted); text-transform: uppercase;">Live Match</span>
+            <div id="field-match-num" style="font-size: 20rem; color: #fff; line-height: 1; font-weight: 900;">--</div>
+        </div>
+    </section>
+
+    <section id="tab-matches" class="view-section">
+        <div id="full-schedule-grid" class="match-grid"></div>
+    </section>
+
+    <section id="tab-standings" class="view-section">
+        <div class="scroll-wrap">
+            <div id="scroll-table"><table id="rankings-table-body"></table></div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    const CONFIG = {
+        KEY: "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7",
+        EVENT: "2026txcmp2",
+        TEAM: "4206"
+    };
+
+    async function updateDashboard() {
+        try {
+            const [mRes, rRes] = await Promise.all([
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/matches/simple`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} }),
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/rankings`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} })
+            ]);
+
+            const matches = await mRes.json();
+            const rankings = await rRes.json();
+
+            const allMatches = matches.sort((a,b) => a.time - b.time);
+            const finished = allMatches.filter(m => m.alliances.red.score !== -1);
+            const unplayed = allMatches.filter(m => m.alliances.red.score === -1);
+            const elims = allMatches.filter(m => m.comp_level !== 'qm');
+
+            // Find current match being played (first unplayed match)
+            const currentMatch = unplayed.length > 0 ? unplayed[0] : null;
+
+            // 1. Team Stats
+            const ourRank = rankings.rankings.find(r => r.team_key === 'frc'+CONFIG.TEAM);
+            if(ourRank) {
+                document.getElementById('live-record').innerText = `${ourRank.record.wins}-${ourRank.record.losses}-${ourRank.record.ties}`;
+                document.getElementById('live-rank').innerText = `#${ourRank.rank}`;
+            }
+
+            const ourUpcoming = allMatches.filter(m => 
+                m.alliances.red.score === -1 && 
+                (m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM) || m.alliances.blue.team_keys.includes('frc'+CONFIG.TEAM))
+            ).slice(0,3);
+
+            document.getElementById('live-next-3').innerHTML = ourUpcoming.map(m => {
+                const isRed = m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
+                const label = m.comp_level === 'qm' ? `QM${m.match_number}` : `${m.comp_level.toUpperCase()}${m.match_number}`;
+                return `<div class="mini-match ${isRed ? 'red-line' : 'blue-line'}">${label}</div>`;
+            }).join('') || '<div class="mini-match">Done</div>';
+
+            // 2. Bumper Logic
+            if(ourUpcoming.length > 0) {
+                const isRed = ourUpcoming[0].alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
+                document.getElementById('bumper-card').className = `bumper-hero ${isRed ? 'red-mode' : 'blue-mode'}`;
+            } else {
+                document.getElementById('bumper-card').className = 'bumper-hero idle-mode';
+            }
+
+            // 3. On Field
+            if(currentMatch) {
+                document.getElementById('field-match-num').innerText = currentMatch.comp_level === 'qm' ? currentMatch.match_number : currentMatch.comp_level.toUpperCase() + currentMatch.match_number;
+            }
+
+            // 4. Bracket Rendering
+            const getMNode = (num, level = 'sf') => {
+                const m = elims.find(x => x.comp_level === level && x.match_number === num);
+                const isCurrentLive = currentMatch && currentMatch.comp_level === level && currentMatch.match_number === num;
+                
+                if(!m) return `<div class="bracket-node ${isCurrentLive ? 'current-match-live' : ''}"><span class="node-prefix">${level.toUpperCase()}${num}</span><div>TBD<span class="node-score">--</span></div><div>TBD<span class="node-score">--</span></div></div>`;
+                
+                const rS = m.alliances.red.score;
+                const bS = m.alliances.blue.score;
+                
+                const redTeams = m.alliances.red.team_keys.map(k=>k.replace('frc',''));
+                const blueTeams = m.alliances.blue.team_keys.map(k=>k.replace('frc',''));
+                
+                const redIsUs = redTeams.includes(CONFIG.TEAM);
+                const blueIsUs = blueTeams.includes(CONFIG.TEAM);
+
+                return `
+                    <div class="bracket-node ${isCurrentLive ? 'current-match-live' : ''} ${ (redIsUs || blueIsUs) ? 'featured' : ''}">
+                        <span class="node-prefix">${level.toUpperCase()}${num}</span>
+                        <div class="${rS > bS ? 'win' : (rS < bS ? 'loss' : '')} ${redIsUs ? 'team-4206-gold' : ''}">
+                            ${redTeams.join(',')}
+                            <span class="node-score">${rS>-1?rS:'--'}</span>
+                        </div>
+                        <div class="${bS > rS ? 'win' : (bS < rS ? 'loss' : '')} ${blueIsUs ? 'team-4206-gold' : ''}">
+                            ${blueTeams.join(',')}
+                            <span class="node-score">${bS>-1?bS:'--'}</span>
+                        </div>
+                    </div>`;
+            };
+
+            for(let i=1; i<=13; i++) document.getElementById('m'+i).innerHTML = getMNode(i);
+            document.getElementById('f1').innerHTML = getMNode(1, 'f');
+            document.getElementById('f2').innerHTML = getMNode(2, 'f');
+            document.getElementById('f3').innerHTML = getMNode(3, 'f');
+
+            // 5. Schedule & Rankings
+            document.getElementById('full-schedule-grid').innerHTML = unplayed.map(m => {
+                const rK = m.alliances.red.team_keys.map(k => k.replace('frc',''));
+                const bK = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
+                const isUs = [...rK, ...bK].includes(CONFIG.TEAM);
+                return `
+                    <div class="card ${isUs ? 'my-match' : ''}">
+                        <span class="match-num-badge">${m.comp_level.toUpperCase()}${m.match_number}</span>
+                        <div class="alliance-line red-l"><span class="${rK.includes(CONFIG.TEAM) ? 'team-4206-gold' : ''}">${rK.join(', ')}</span><span>${m.alliances.red.score>-1?m.alliances.red.score:''}</span></div>
+                        <div class="alliance-line blue-l"><span class="${bK.includes(CONFIG.TEAM) ? 'team-4206-gold' : ''}">${bK.join(', ')}</span><span>${m.alliances.blue.score>-1?m.alliances.blue.score:''}</span></div>
+                    </div>`;
+            }).join('');
+
+            document.getElementById('rankings-table-body').innerHTML = rankings.rankings.map(r => `
+                <tr ${r.team_key === 'frc'+CONFIG.TEAM ? 'style="color:var(--gold)"' : ''}>
+                    <td>${r.rank}</td><td>${r.team_key.replace('frc','')}</td><td>${r.record.wins}-${r.record.losses}</td><td>${(r.extra_stats[0] || 0).toFixed(2)}</td>
+                </tr>`).join('');
+
+        } catch (e) { console.error(e); }
+    }
+
+    function switchTab(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    setInterval(updateDashboard, 15000); // Faster refresh for elims
+    updateDashboard();
+</script>
+</body>
+</html>
