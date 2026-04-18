@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4206 Command Center</title>
+    <style>
+        :root {
+            --red: #ff4d4d;
+            --blue: #4d94ff;
+            --gold: #ffcc00;
+            --bg: #0a0a0a;
+            --card: #1c1c1c;
+            --accent: #007bff;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* TEAM STATUS HEADER */
+        .status-bar {
+            background: #000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            font-weight: bold;
+        }
+
+        .status-item { text-align: center; }
+        .status-label { font-size: 0.7rem; color: #888; text-transform: uppercase; display: block; }
+        .status-value { font-size: 1.2rem; color: var(--gold); }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #000;
+            padding: 10px;
+            gap: 8px;
+            border-bottom: 2px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav button {
+            background: #222;
+            color: #aaa;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        nav button.active { background: var(--accent); color: white; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* BUMPER VIEW */
+        #bumper-view {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+        .red-mode { background: radial-gradient(circle, #800000 0%, #300000 100%); border: 5px solid var(--red); }
+        .blue-mode { background: radial-gradient(circle, #001f3f 0%, #000814 100%); border: 5px solid var(--blue); }
+
+        /* NEXT 3 MINI CARDS */
+        .next-three { display: flex; gap: 10px; }
+        .mini-card { background: #222; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; border-left: 3px solid var(--gold); }
+
+        /* STANDINGS SCROLL */
+        .standings-window { height: 60vh; overflow: hidden; position: relative; background: var(--card); }
+        #scrolling-content { position: absolute; width: 100%; animation: scroll-loop 40s linear infinite; }
+        @keyframes scroll-loop { 0% { top: 0; } 90% { top: -120%; } 100% { top: 0; } }
+
+        .match-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .match-card { background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; }
+        .alliance { display: flex; justify-content: space-between; padding: 5px; margin: 2px 0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 12px; border-bottom: 1px solid #333; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-label">Team 4206 Record</span>
+        <span class="status-value" id="stat-record">0-0-0</span>
+    </div>
+    <div class="status-item">
+        <span class="status-label">Next 3 Matches</span>
+        <div class="next-three" id="stat-next-3">
+            <div class="mini-card">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<nav>
+    <button onclick="switchTab('bumper')" id="btn-bumper" class="active">Bumper Color</button>
+    <button onclick="switchTab('now')" id="btn-now">Current Match</button>
+    <button onclick="switchTab('upcoming')" id="btn-upcoming">All Matches</button>
+    <button onclick="switchTab('standings')" id="btn-standings">Rankings</button>
+    <button onclick="switchTab('results')" id="btn-results">History</button>
+</nav>
+
+<div class="container">
+    
+    <div id="bumper" class="view-section active">
+        <div id="bumper-view">
+            <h2 style="font-size: 3rem; margin: 0; opacity: 0.7;">NEXT UP:</h2>
+            <h1 id="b-match-num" style="font-size: 12rem; margin: 0;">--</h1>
+            <p id="b-color-text" style="font-size: 4rem; font-weight: bold; text-transform: uppercase;"></p>
+            <div id="b-partners" style="font-size: 2rem;"></div>
+        </div>
+    </div>
+
+    <div id="now" class="view-section">
+        <div style="text-align:center; padding-top: 100px;">
+            <span style="font-size: 2rem; color: #666; letter-spacing: 5px;">ON FIELD NOW</span>
+            <h1 id="big-match-num" style="font-size: 18rem; color: var(--accent); margin:0;">--</h1>
+        </div>
+    </div>
+
+    <div id="upcoming" class="view-section">
+        <h2>Full Schedule</h2>
+        <div id="upcoming-list" class="match-grid"></div>
+    </div>
+
+    <div id="standings" class="view-section">
+        <h2>Rankings</h2>
+        <div class="standings-window">
+            <div id="scrolling-content"><table id="standings-body"></table></div>
+        </div>
+    </div>
+
+    <div id="results" class="view-section">
+        <h2>History</h2>
+        <div id="results-list" class="match-grid"></div>
+    </div>
+
+</div>
+
+<script>
+    const CONFIG = {
+        KEY: "0XbNGhiDP1EkHijk4BifYYDmfZHXetlQXxEVv3Gs3V2aCL03k38XdQJP5CbGCBH7",
+        EVENT: "2026txcmp2",
+        TEAM: "4206"
+    };
+
+    async function update() {
+        try {
+            const [mRes, rRes] = await Promise.all([
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/matches/simple`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} }),
+                fetch(`https://www.thebluealliance.com/api/v3/event/${CONFIG.EVENT}/rankings`, { headers: {'X-TBA-Auth-Key': CONFIG.KEY} })
+            ]);
+            const matches = await mRes.json();
+            const rankings = await rRes.json();
+
+            const quals = matches.filter(m => m.comp_level === 'qm').sort((a,b) => a.match_number - b.match_number);
+            const finished = quals.filter(m => m.alliances.red.score !== -1);
+            const unplayed = quals.filter(m => m.alliances.red.score === -1);
+
+            // 1. GET OUR RECORD & RANK
+            const ourRank = rankings.rankings.find(r => r.team_key === 'frc'+CONFIG.TEAM);
+            if(ourRank) {
+                document.getElementById('stat-record').innerText = `${ourRank.record.wins}-${ourRank.record.losses}-${ourRank.record.ties} (#${ourRank.rank})`;
+            }
+
+            // 2. GET OUR NEXT 3 MATCHES
+            const ourUpcoming = quals.filter(m => 
+                m.alliances.red.score === -1 && 
+                (m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM) || m.alliances.blue.team_keys.includes('frc'+CONFIG.TEAM))
+            ).slice(0,3);
+
+            document.getElementById('stat-next-3').innerHTML = ourUpcoming.map(m => {
+                const color = m.alliances.red.team_keys.includes('frc'+CONFIG.TEAM) ? 'Red' : 'Blue';
+                return `<div class="mini-card">QM ${m.match_number} (${color})</div>`;
+            }).join('');
+
+            // 3. BUMPER LOGIC
+            if(ourUpcoming.length > 0) {
+                const next = ourUpcoming[0];
+                const isRed = next.alliances.red.team_keys.includes('frc'+CONFIG.TEAM);
+                const partners = isRed ? next.alliances.red.team_keys : next.alliances.blue.team_keys;
+                
+                document.getElementById('bumper-view').className = isRed ? 'red-mode' : 'blue-mode';
+                document.getElementById('b-match-num').innerText = next.match_number;
+                document.getElementById('b-color-text').innerText = (isRed ? 'Red' : 'Blue') + " Alliance";
+                document.getElementById('b-color-text').style.color = isRed ? 'var(--red)' : 'var(--blue)';
+                document.getElementById('b-partners').innerText = "Partners: " + partners.map(k => k.replace('frc','')).filter(k => k !== CONFIG.TEAM).join(' & ');
+            }
+
+            // 4. ON FIELD
+            const lastNum = finished.length > 0 ? Math.max(...finished.map(m => m.match_number)) : 0;
+            document.getElementById('big-match-num').innerText = lastNum + 1;
+
+            // 5. LISTS & STANDINGS
+            document.getElementById('upcoming-list').innerHTML = unplayed.slice(0, 10).map(m => createCard(m)).join('');
+            document.getElementById('results-list').innerHTML = [...finished].reverse().slice(0,10).map(m => createCard(m, true)).join('');
+            document.getElementById('standings-body').innerHTML = rankings.rankings.map(r => `
+                <tr ${r.team_key === 'frc'+CONFIG.TEAM ? 'style="color:var(--gold)"' : ''}>
+                    <td>${r.rank}</td><td>${r.team_key.replace('frc','')}</td><td>${r.record.wins}-${r.record.losses}</td><td>${r.qual_average}</td>
+                </tr>
+            `).join('');
+
+        } catch (e) { console.error(e); }
+    }
+
+    function createCard(m, isRes) {
+        const rK = m.alliances.red.team_keys.map(k => k.replace('frc',''));
+        const bK = m.alliances.blue.team_keys.map(k => k.replace('frc',''));
+        const featured = [...rK, ...bK].includes(CONFIG.TEAM);
+        return `<div class="match-card" style="border-left: 5px solid ${featured ? 'var(--gold)' : '#333'}">
+            <div style="font-size: 0.8rem; color:#888">QM ${m.match_number}</div>
+            <div class="alliance" style="color:var(--red)">${rK.join(', ')} <b>${m.alliances.red.score > -1 ? m.alliances.red.score : ''}</b></div>
+            <div class="alliance" style="color:var(--blue)">${bK.join(', ')} <b>${m.alliances.blue.score > -1 ? m.alliances.blue.score : ''}</b></div>
+        </div>`;
+    }
+
+    function switchTab(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    setInterval(update, 30000);
+    update();
+</script>
+</body>
+</html>
